@@ -32,40 +32,7 @@ namespace WinAuth
                 return;
             }
 
-            var controllerName = route.Values["controller"];
-            var actionName = route.Values["action"];
-
-            var controller = Assembly.GetEntryAssembly()
-                .GetTypes().FirstOrDefault(t=>t.Name.Contains($"{controllerName}Controller"));
-
-            //if controller is null led other middleware handle it
-            if(controller is not { })
-            {
-                await _next(context);
-                return;
-            }
-
-            //actions are public
-            var action = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(t=>t.Name == actionName.ToString());
-            
-            //double check
-            if (action is not { })
-            {
-                await _next(context);
-                return;
-            }
-
-            var attribute = action.GetCustomAttribute(typeof(WinAuthAccessAttribute));
-
-            //double check
-            if (attribute is not { })
-            {
-                await _next(context);
-                return;
-            }
-
-            var access = (WinAuthAccessAttribute)attribute;
+            var access = GetAccessMode(route);
 
             //session id
             var sessionId = context.Request.Cookies
@@ -107,6 +74,43 @@ namespace WinAuth
                     return;
                 }
             }
+        }
+
+        private WinAuthAccessAttribute? GetAccessMode(RouteData route)
+        {
+            var controllerName = route.Values["controller"];
+            var actionName = route.Values["action"];
+
+            var controller = Assembly.GetEntryAssembly()
+                .GetTypes().FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
+
+            //if controller is null led other middleware handle it
+            if (controller is not { })
+            {
+                return null;
+            }
+
+            //actions are public
+            var action = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(t => t.Name == actionName.ToString());
+
+            //double check
+            if (action is not { })
+            {
+                return null;
+            }
+
+            var attribute = action.GetCustomAttribute(typeof(WinAuthAccessAttribute));
+
+            //double check
+            if (attribute is not { })
+            {
+                return null;
+            }
+
+            var access = (WinAuthAccessAttribute)attribute;
+
+            return access;
         }
     }
 }

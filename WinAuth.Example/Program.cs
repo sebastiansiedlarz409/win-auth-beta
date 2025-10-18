@@ -20,8 +20,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+app.UseWinAuth(); //after UseRouting()
 
-app.UseWinAuth(); //moj middleware
 app.MapStaticAssets();
 
 app.MapControllerRoute(
