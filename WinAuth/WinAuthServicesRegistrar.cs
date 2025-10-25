@@ -7,18 +7,24 @@ namespace WinAuth
 {
     public static class WinAuthServicesRegistrar
     {
-        public static void AddWinAuth(this IServiceCollection services)
+        public static void AddWinAuth(this IServiceCollection services, string domainName)
         {
-            services.AddSingleton<WinAuthManager>();
-
-            if(services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() == 0)
+            if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() == 0)
             {
                 services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
             }
-            else if(services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() > 1)
+            else if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() > 1)
             {
                 throw new Exception($"Implementation of IWinAuthSessionManager can be registere only once...");
             }
+
+            services.AddSingleton<WinAuthManager>(t =>
+            {
+                //if user did not regiseter own manager code above register default one
+                //null value never happen
+                IWinAuthSessionManager? sm = t.GetService<IWinAuthSessionManager>()!;
+                return new WinAuthManager(sm, domainName);
+            });
         }
 
         public static void UseWinAuth(this WebApplication app)

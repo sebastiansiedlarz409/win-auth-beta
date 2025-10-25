@@ -1,19 +1,34 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.DirectoryServices.AccountManagement;
 using WinAuth.Session;
 
 namespace WinAuth
 {
     public class WinAuthManager
     {
+        private readonly string _domainName = string.Empty;
+
         /// <summary>
         /// User can implement own session storage base on db, redis, memory or etc
         /// </summary>
         private readonly IWinAuthSessionManager _sessionManager;
 
-        public WinAuthManager(IWinAuthSessionManager sessionManager)
+        public WinAuthManager(IWinAuthSessionManager sessionManager, string domainName)
         {
             _sessionManager = sessionManager;
+
+            _domainName = domainName;
+        }
+
+        public bool Login(string username, string password)
+        {
+            using var context = new PrincipalContext(ContextType.Domain, _domainName);
+
+            var valid = context.ValidateCredentials(username, password);
+
+            return valid;
         }
 
         /// <summary>

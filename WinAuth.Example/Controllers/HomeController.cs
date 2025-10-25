@@ -17,10 +17,19 @@ namespace WinAuth.Example.Controllers
         [WinAuthAccess(WinAuthAccess.Login)]
         public IActionResult Login()
         {
-            var user = "user";
-            _authManager.CreateSession(HttpContext, user);
-
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult LoginUser(string user, string pass)
+        {
+            if (_authManager.Login(user, pass))
+            {
+                _authManager.CreateSession(HttpContext, user);
+                return RedirectToAction("Page"); //login succeed - go to protected page
+            }
+
+            return RedirectToAction("Login"); //login failed - go to login page
         }
 
         [WinAuthAccess(WinAuthAccess.Authorized)]
