@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace WinAuth
 {
@@ -10,11 +11,12 @@ namespace WinAuth
         /// Create session and its cookie
         /// </summary>
         /// <param name="httpContext">Context</param>
+        /// <param name="userName">User login</param>
         /// <returns></returns>
-        public Guid CreateSession(HttpContext httpContext)
+        public Guid CreateSession(HttpContext httpContext, string userName)
         {
             //create new session and store it
-            var session = new WinAuthSession();
+            var session = new WinAuthSession(userName);
             _sessions.Add(session);
 
             //set cookie in context
@@ -78,10 +80,42 @@ namespace WinAuth
             //if session exist in storage check liftime
             if(session is { })
             {
-                return session.ExpirationDate >= DateTime.Now;
+                bool valid = session.ExpirationDate >= DateTime.Now;
+
+                if (valid)
+                {
+                    //setup user data for app purposes
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, session.UserName),
+                    };
+
+                    var identity = new ClaimsIdentity(claims, "WinAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    httpContext.User = principal;
+                }
+
+                return valid;
             }
 
             return false;
         }
+
+        /*public WinAuthSession? GetSession(HttpContext httpContext)
+        {
+            if(!IsSessionAlive(httpContext)) return null;
+
+            //session id
+            var sessionId = httpContext.Request.Cookies
+                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
+
+            var sid = new Guid(sessionId);
+
+            //extrude session from storage
+            var session = _sessions.FirstOrDefault(t => t.SessionId == sid);
+
+            return session;
+        }*/
     }
 }

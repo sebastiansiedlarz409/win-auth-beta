@@ -1,6 +1,6 @@
 ﻿namespace WinAuth
 {
-    internal class WinAuthSession
+    public class WinAuthSession
     {
         public Guid SessionId { get; set; }
 
@@ -12,6 +12,7 @@
         {
             SessionId = Guid.NewGuid();
             ExpirationDate = DateTime.Now.AddMinutes(3);
+
             UserName = userName;
         }
     }

@@ -17,7 +17,8 @@ namespace WinAuth.Example.Controllers
         [WinAuthAccess(WinAuthAccess.Login)]
         public IActionResult Login()
         {
-            _authManager.CreateSession(HttpContext);
+            var user = "user";
+            _authManager.CreateSession(HttpContext, user);
 
             return View();
         }
