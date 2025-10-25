@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Reflection;
 using WinAuth.Attributes;
@@ -64,7 +65,8 @@ namespace WinAuth.Middleware
                 //pass to login is not allowed
                 else
                 {
-                    context.Response.Redirect("/Home/Index", false);
+                    context.Response.StatusCode = 403;
+                    await context.Response.WriteAsync("User is already logged in...");
                     return;
                 }
             }
@@ -74,7 +76,7 @@ namespace WinAuth.Middleware
                 //redirect to login
                 if (!validSessionId)
                 {
-                    context.Response.Redirect("/Home/Login", false);
+                    context.Response.Redirect("/Login", false);
                     return;
                 }
                 //client pass session id

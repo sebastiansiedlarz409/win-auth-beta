@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using WinAuth.Attributes;
-using WinAuth.Example.Models;
 
 namespace WinAuth.Example.Controllers
 {
@@ -14,6 +12,8 @@ namespace WinAuth.Example.Controllers
             _authManager = authManager;
         }
 
+        //login page
+        //winauth redirect here when use try to access nonpublic page without valid session
         [WinAuthAccess(WinAuthAccess.Login)]
         public IActionResult Login()
         {
@@ -32,6 +32,7 @@ namespace WinAuth.Example.Controllers
             return RedirectToAction("Login"); //login failed - go to login page
         }
 
+        //clear session
         [WinAuthAccess(WinAuthAccess.Authorized)]
         public IActionResult Logout()
         {
@@ -40,26 +41,17 @@ namespace WinAuth.Example.Controllers
             return RedirectToAction("Index");
         }
 
+        //non public page
         [WinAuthAccess(WinAuthAccess.Authorized)]
         public IActionResult Page()
         {
             return View();
         }
 
+        //public page
         public IActionResult Index()
         {
             return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
