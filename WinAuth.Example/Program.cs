@@ -8,7 +8,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
 
-builder.Services.AddWinAuth("domain.local");
+builder.Services.AddWinAuth("domain.local", 30);
 
 var app = builder.Build();
 
@@ -23,7 +23,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
-app.UseWinAuth(); //after UseRouting()
+app.UseWinAuth(typeof(Program).Assembly); //after UseRouting()
 
 app.MapStaticAssets();
 

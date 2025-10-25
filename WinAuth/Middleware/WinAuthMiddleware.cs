@@ -9,11 +9,13 @@ namespace WinAuth.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly WinAuthManager _authManager;
+        private readonly Assembly _assembly;
 
-        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager)
+        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly)
         {
             _next = next;
             _authManager = authManager;
+            _assembly = assembly;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -85,6 +87,11 @@ namespace WinAuth.Middleware
             }
         }
 
+        /// <summary>
+        /// Get WinAuthAccesAttribute assigned with action base on route
+        /// </summary>
+        /// <param name="route">Route from HttpContext</param>
+        /// <returns>Attribute object or null</returns>
         private WinAuthAccessAttribute? GetAccessMode(RouteData route)
         {
             //get controller and action name
@@ -92,8 +99,8 @@ namespace WinAuth.Middleware
             var actionName = route.Values["action"];
 
             //scan provided assembly
-            var controller = Assembly.GetEntryAssembly()
-                .GetTypes().FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
+            var controller = _assembly.GetTypes()
+                .FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
 
             //if controller is null led other middleware handle it
             if (controller is not { })
@@ -102,8 +109,9 @@ namespace WinAuth.Middleware
             }
 
             //actions are public
+            //actionName cant be null if routing is used before this middlware
             var action = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(t => t.Name == actionName.ToString());
+                .FirstOrDefault(t => t.Name == actionName!.ToString());
 
             //double check
             if (action is not { })

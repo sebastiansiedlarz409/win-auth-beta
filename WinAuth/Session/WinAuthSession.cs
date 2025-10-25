@@ -8,10 +8,10 @@
 
         public string UserName { get; set; }
 
-        public WinAuthSession(string userName)
+        public WinAuthSession(string userName, int sessionLifeTime)
         {
             SessionId = Guid.NewGuid();
-            ExpirationDate = DateTime.Now.AddMinutes(3);
+            ExpirationDate = DateTime.Now.AddMinutes(sessionLifeTime);
 
             UserName = userName;
         }

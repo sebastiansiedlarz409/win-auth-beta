@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.DirectoryServices.AccountManagement;
 using WinAuth.Session;
@@ -9,19 +8,34 @@ namespace WinAuth
     public class WinAuthManager
     {
         private readonly string _domainName = string.Empty;
+        private int _sessionLifeTime = 30;
 
         /// <summary>
         /// User can implement own session storage base on db, redis, memory or etc
         /// </summary>
         private readonly IWinAuthSessionManager _sessionManager;
 
-        public WinAuthManager(IWinAuthSessionManager sessionManager, string domainName)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="sessionManager">Session storage implementation</param>
+        /// <param name="domainName">Target domain name</param>
+        /// <param name="liftime">Session life time in minutes</param>
+        public WinAuthManager(IWinAuthSessionManager sessionManager, string domainName, int liftime)
         {
             _sessionManager = sessionManager;
 
             _domainName = domainName;
+
+            _sessionLifeTime = liftime;
         }
 
+        /// <summary>
+        /// Check credantials in domain
+        /// </summary>
+        /// <param name="username">Domain user</param>
+        /// <param name="password">Domain password</param>
+        /// <returns>Valid or not</returns>
         public bool Login(string username, string password)
         {
             using var context = new PrincipalContext(ContextType.Domain, _domainName);
@@ -40,7 +54,7 @@ namespace WinAuth
         public Guid CreateSession(HttpContext httpContext, string userName)
         {
             //create new session and store it
-            var session = new WinAuthSession(userName);
+            var session = new WinAuthSession(userName, _sessionLifeTime);
             _sessionManager.StoreSession(session);
 
             //set cookie in context
@@ -120,6 +134,15 @@ namespace WinAuth
                     var principal = new ClaimsPrincipal(identity);
 
                     httpContext.User = principal;
+
+                    //rewrite session
+                    //not every time due to perfomance of session manager
+                    if(session.ExpirationDate - DateTime.Now < TimeSpan.FromMinutes(2))
+                    {
+                        _sessionManager.RemoveSession(session);
+                        session.ExpirationDate.AddMinutes(_sessionLifeTime);
+                        _sessionManager.StoreSession(session);
+                    }
                 }
 
                 return valid;
