@@ -6,10 +6,13 @@
 
         public DateTime ExpirationDate { get; set; }
 
-        public WinAuthSession()
+        public string UserName { get; set; }
+
+        public WinAuthSession(string userName)
         {
             SessionId = Guid.NewGuid();
             ExpirationDate = DateTime.Now.AddMinutes(3);
+            UserName = userName;
         }
     }
 }

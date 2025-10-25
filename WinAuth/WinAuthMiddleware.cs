@@ -18,20 +18,26 @@ namespace WinAuth
 
         public async Task InvokeAsync(HttpContext context)
         {
+            //skip validation for resources files like css or js
             if (Path.HasExtension(context.Request.Path))
             {
                 await _next(context);
                 return;
             }
 
+            //extrude route from context
             var route = context.GetRouteData();
 
+            //if there is no route
+            //route middleware wasnt registered before this middleware
+            //skip auth validation
             if(route.Values.Count == 0)
             {
                 await _next(context);
                 return;
             }
 
+            //get access mode attribute
             var access = GetAccessMode(route);
             if(access is not { })
             {
@@ -39,11 +45,9 @@ namespace WinAuth
                 return;
             }
 
-            //session id
-            var sessionId = context.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
-
-            var validSessionId = _authManager.IsSessionAlive(sessionId);
+            //check if session exist
+            //if exists checks if its alive as well
+            var validSessionId = _authManager.IsSessionAlive(context);
 
             if (access.Access == WinAuthAccess.Login)
             {
@@ -83,9 +87,11 @@ namespace WinAuth
 
         private WinAuthAccessAttribute? GetAccessMode(RouteData route)
         {
+            //get controller and action name
             var controllerName = route.Values["controller"];
             var actionName = route.Values["action"];
 
+            //scan provided assembly
             var controller = Assembly.GetEntryAssembly()
                 .GetTypes().FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
 
@@ -105,6 +111,7 @@ namespace WinAuth
                 return null;
             }
 
+            //get access attribute
             var attribute = action.GetCustomAttribute(typeof(WinAuthAccessAttribute));
 
             //double check
@@ -112,7 +119,8 @@ namespace WinAuth
             {
                 return null;
             }
-
+            
+            //extrude access mode
             var access = (WinAuthAccessAttribute)attribute;
 
             return access;
