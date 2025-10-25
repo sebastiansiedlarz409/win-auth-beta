@@ -33,6 +33,11 @@ namespace WinAuth
             }
 
             var access = GetAccessMode(route);
+            if(access is not { })
+            {
+                await _next(context);
+                return;
+            }
 
             //session id
             var sessionId = context.Request.Cookies

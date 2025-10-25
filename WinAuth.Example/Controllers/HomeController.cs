@@ -23,6 +23,19 @@ namespace WinAuth.Example.Controllers
         }
 
         [WinAuthAccess(WinAuthAccess.Authorized)]
+        public IActionResult Logout()
+        {
+            _authManager.KillSession(HttpContext);
+
+            return RedirectToAction("Index");
+        }
+
+        [WinAuthAccess(WinAuthAccess.Authorized)]
+        public IActionResult Page()
+        {
+            return View();
+        }
+
         public IActionResult Index()
         {
             return View();
