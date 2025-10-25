@@ -1,9 +1,12 @@
 using WinAuth;
+using WinAuth.Session;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
 
 builder.Services.AddWinAuth();
 

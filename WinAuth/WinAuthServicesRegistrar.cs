@@ -10,7 +10,15 @@ namespace WinAuth
         public static void AddWinAuth(this IServiceCollection services)
         {
             services.AddSingleton<WinAuthManager>();
-            services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
+
+            if(services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() == 0)
+            {
+                services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
+            }
+            else if(services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() > 1)
+            {
+                throw new Exception($"Implementation of IWinAuthSessionManager can be registere only once...");
+            }
         }
 
         public static void UseWinAuth(this WebApplication app)
