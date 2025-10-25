@@ -1,4 +1,4 @@
-﻿namespace WinAuth
+﻿namespace WinAuth.Session
 {
     public class WinAuthSession
     {

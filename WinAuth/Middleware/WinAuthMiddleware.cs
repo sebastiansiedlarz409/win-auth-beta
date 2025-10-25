@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Routing;
 using System.Reflection;
 using WinAuth.Attributes;
 
-namespace WinAuth
+namespace WinAuth.Middleware
 {
     public class WinAuthMiddleware
     {

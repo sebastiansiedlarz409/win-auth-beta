@@ -1,11 +1,20 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using WinAuth.Session;
 
 namespace WinAuth
 {
     public class WinAuthManager
     {
-        private List<WinAuthSession> _sessions = new List<WinAuthSession>();
+        /// <summary>
+        /// User can implement own session storage base on db, redis, memory or etc
+        /// </summary>
+        private readonly IWinAuthSessionManager _sessionManager;
+
+        public WinAuthManager(IWinAuthSessionManager sessionManager)
+        {
+            _sessionManager = sessionManager;
+        }
 
         /// <summary>
         /// Create session and its cookie
@@ -17,10 +26,13 @@ namespace WinAuth
         {
             //create new session and store it
             var session = new WinAuthSession(userName);
-            _sessions.Add(session);
+            _sessionManager.StoreSession(session);
 
             //set cookie in context
             httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString());
+
+            //setup identity
+            IsSessionAlive(httpContext);
 
             //return session id
             return session.SessionId;
@@ -46,12 +58,12 @@ namespace WinAuth
 
             var sid = new Guid(sessionId);
 
-            var session = _sessions.FirstOrDefault(t => t.SessionId == sid);
+            var session = _sessionManager.GetSession(sid);
 
             //if session exist inside session storage remove it
             if (session is { })
             {
-                _sessions.Remove(session);
+                _sessionManager.RemoveSession(session);
             }
         }
 
@@ -74,8 +86,7 @@ namespace WinAuth
             }
 
             var sid = new Guid(sessionId);
-
-            var session = _sessions.FirstOrDefault(t=>t.SessionId == sid);
+            var session = _sessionManager.GetSession(sid);
 
             //if session exist in storage check liftime
             if(session is { })
@@ -101,21 +112,5 @@ namespace WinAuth
 
             return false;
         }
-
-        /*public WinAuthSession? GetSession(HttpContext httpContext)
-        {
-            if(!IsSessionAlive(httpContext)) return null;
-
-            //session id
-            var sessionId = httpContext.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
-
-            var sid = new Guid(sessionId);
-
-            //extrude session from storage
-            var session = _sessions.FirstOrDefault(t => t.SessionId == sid);
-
-            return session;
-        }*/
     }
 }

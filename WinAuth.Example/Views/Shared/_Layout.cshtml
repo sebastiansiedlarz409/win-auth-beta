@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WinAuth.Example</title>
+    <title>WinAuth.Example</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -21,10 +21,24 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="btn btn-outline-secondary" asp-area="" asp-controller="Home" asp-action="Index">Home (PUBLIC)</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="btn btn-outline-secondary" asp-area="" asp-controller="Home" asp-action="Page">Page (AUTH NEEDED)</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
+                    <ul class="navbar-nav flex-grow-1 flex-row-reverse">
+                        <li class="nav-item">
+                            @if (authManager.IsSessionAlive(ViewContext.HttpContext))
+                            {
+                                <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@ViewContext.HttpContext.User.Identity!.Name)</a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-outline-primary" asp-area="" asp-controller="Home" asp-action="Login">Login</a>
+                            }
                         </li>
                     </ul>
                 </div>
