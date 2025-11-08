@@ -1,7 +1,7 @@
 ﻿
 namespace WinAuth.Session
 {
-    public class WinAuthSessionMemoryStorage : IWinAuthSessionManager
+    public class WinAuthSessionMemoryStorage : IWinAuthSessionStorage
     {
         private List<WinAuthSession> _sessions = new List<WinAuthSession>();
 

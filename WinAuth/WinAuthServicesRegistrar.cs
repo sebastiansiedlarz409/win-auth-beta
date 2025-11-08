@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using WinAuth.Attributes;
@@ -21,30 +20,33 @@ namespace WinAuth
         /// <exception cref="WinAuthSetupException">Thrown when none or more than one IWinAuthSessionManager implementation has been registered</exception>
         public static void AddWinAuth(this IServiceCollection services, string domainName, int sessionLifeTime)
         {
+            //check platform
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 throw new WinAuthSetupException($"Only windows enviroment is supported at the moment...");
             }
 
+            //check session lifetime
             if (sessionLifeTime < 5)
             {
                 throw new WinAuthSetupException($"Session life time must be greater or equal than 5 minutes...");
             }
 
-            if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() == 0)
+            //check if session storage provider has been registered
+            //if any register default one
+            if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() == 0)
             {
-                services.AddSingleton<IWinAuthSessionManager, WinAuthSessionMemoryStorage>();
+                services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>();
             }
-            else if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionManager)).Count() > 1)
+            else if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() > 1)
             {
                 throw new WinAuthSetupException($"Implementation of IWinAuthSessionManager can be registere only once...");
             }
 
+            //register auth manager
             services.AddSingleton<WinAuthManager>(t =>
             {
-                //if user did not regiseter own manager code above register default one
-                //null value never happen
-                IWinAuthSessionManager? sm = t.GetService<IWinAuthSessionManager>()!;
+                IWinAuthSessionStorage? sm = t.GetService<IWinAuthSessionStorage>()!;
                 return new WinAuthManager(sm, domainName, sessionLifeTime);
             });
         }
@@ -53,14 +55,25 @@ namespace WinAuth
         /// Add middlware to pipeline
         /// </summary>
         /// <param name="assembly">Main assembly/Controllers assembly</param>
-        public static void UseWinAuth(this WebApplication app, Assembly assembly)
+        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoutePattern = "login")
         {
-            CreateLoginRoute(app, assembly);
+            if (string.IsNullOrEmpty(loginRoutePattern))
+            {
+                throw new WinAuthSetupException($"Invalid login route name...");
+            }
+
+            //add login route to routes table base on WinAuthAccessAttribute
+            CreateLoginRoute(app, assembly, loginRoutePattern);
 
             app.UseMiddleware<WinAuthMiddleware>(assembly);
         }
 
-        private static void CreateLoginRoute(WebApplication app, Assembly assembly)
+        /// <summary>
+        /// Scan assesmby for login action
+        /// </summary>
+        /// <param name="assembly">Assembly to scan</param>
+        /// <exception cref="WinAuthRouteException"></exception>
+        private static void CreateLoginRoute(WebApplication app, Assembly assembly, string loginRoutePattern)
         {
             var controllers = assembly.GetTypes()
                 .Where(t => t.Name.Contains($"Controller"));
@@ -89,7 +102,7 @@ namespace WinAuth
 
                         app.MapControllerRoute(
                             name: "WinAuthLoginRoute", 
-                            pattern: "Login",
+                            pattern: loginRoutePattern,
                             defaults: new { controller = controllerName, action = actionName })
                             .WithStaticAssets();
 

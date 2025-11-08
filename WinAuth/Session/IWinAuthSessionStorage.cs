@@ -1,6 +1,6 @@
 ﻿namespace WinAuth.Session
 {
-    public interface IWinAuthSessionManager
+    public interface IWinAuthSessionStorage
     {
         /// <summary>
         /// Insert session to storage

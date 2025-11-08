@@ -13,7 +13,7 @@ namespace WinAuth
         /// <summary>
         /// User can implement own session storage base on db, redis, memory or etc
         /// </summary>
-        private readonly IWinAuthSessionManager _sessionManager;
+        private readonly IWinAuthSessionStorage _sessionManager;
 
         /// <summary>
         /// Constructor
@@ -21,7 +21,7 @@ namespace WinAuth
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(IWinAuthSessionManager sessionManager, string domainName, int liftime)
+        public WinAuthManager(IWinAuthSessionStorage sessionManager, string domainName, int liftime)
         {
             _sessionManager = sessionManager;
 

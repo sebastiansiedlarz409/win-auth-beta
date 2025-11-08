@@ -8,7 +8,7 @@
 
     public class WinAuthAccessAttribute : Attribute
     {
-        public WinAuthAccess Access { get; set; }
+        public WinAuthAccess Access { get; private set; }
 
         public WinAuthAccessAttribute(WinAuthAccess access)
         {

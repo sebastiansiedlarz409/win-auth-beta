@@ -9,12 +9,14 @@ namespace WinAuth.Middleware
     public class WinAuthMiddleware
     {
         private readonly RequestDelegate _next;
+
         private readonly WinAuthManager _authManager;
         private readonly Assembly _assembly;
 
         public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly)
         {
             _next = next;
+
             _authManager = authManager;
             _assembly = assembly;
         }
