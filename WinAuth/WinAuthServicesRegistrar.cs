@@ -70,6 +70,7 @@ namespace WinAuth
 
         /// <summary>
         /// Scan assesmby for login action
+        /// Done only once during middleware registration
         /// </summary>
         /// <param name="assembly">Assembly to scan</param>
         /// <exception cref="WinAuthRouteException"></exception>

@@ -67,8 +67,7 @@ namespace WinAuth.Middleware
                 //pass to login is not allowed
                 else
                 {
-                    context.Response.StatusCode = 403;
-                    await context.Response.WriteAsync("User is already logged in...");
+                    context.Response.Redirect("/", false);
                     return;
                 }
             }
