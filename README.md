@@ -37,7 +37,7 @@ public IActionResult Logout()
 }
 ```
 
-OPTIONAL: Create own session storage mechanism by implementing IWinAuthSessionStorage and register it as singleton. Default one will store session in memory.
+OPTIONAL: Create own session storage mechanism by implementing IWinAuthSessionStorage and register it in DI. Default one will store session in memory so it should be singleton.
 ```
 public interface IWinAuthSessionStorage
 {
