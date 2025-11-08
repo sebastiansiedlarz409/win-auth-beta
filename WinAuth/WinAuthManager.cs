@@ -118,37 +118,37 @@ namespace WinAuth
             var session = _sessionManager.GetSession(sid);
 
             //if session exist in storage check liftime
-            if(session is { })
+            if (session is not { })
             {
-                bool valid = session.ExpirationDate >= DateTime.Now;
+                return false;
+            }
 
-                if (valid)
-                {
-                    //setup user data for app purposes
-                    var claims = new List<Claim>
+            bool valid = session.ExpirationDate >= DateTime.Now;
+
+            if (valid)
+            {
+                //setup user data for app purposes
+                var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Name, session.UserName),
                     };
 
-                    var identity = new ClaimsIdentity(claims, "WinAuth");
-                    var principal = new ClaimsPrincipal(identity);
+                var identity = new ClaimsIdentity(claims, "WinAuth");
+                var principal = new ClaimsPrincipal(identity);
 
-                    httpContext.User = principal;
+                httpContext.User = principal;
 
-                    //rewrite session
-                    //not every time due to perfomance of session manager
-                    if(session.ExpirationDate - DateTime.Now < TimeSpan.FromMinutes(2))
-                    {
-                        _sessionManager.RemoveSession(session);
-                        session.ExpirationDate.AddMinutes(_sessionLifeTime);
-                        _sessionManager.StoreSession(session);
-                    }
+                //rewrite session
+                //not every time due to perfomance of session manager
+                if (session.ExpirationDate - DateTime.Now < TimeSpan.FromMinutes(2))
+                {
+                    _sessionManager.RemoveSession(session);
+                    session.ExpirationDate.AddMinutes(_sessionLifeTime);
+                    _sessionManager.StoreSession(session);
                 }
-
-                return valid;
             }
 
-            return false;
+            return valid;
         }
     }
 }
