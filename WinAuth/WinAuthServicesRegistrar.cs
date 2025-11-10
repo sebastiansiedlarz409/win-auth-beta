@@ -47,7 +47,8 @@ namespace WinAuth
             services.AddSingleton<WinAuthManager>(t =>
             {
                 IWinAuthSessionStorage? sm = t.GetService<IWinAuthSessionStorage>()!;
-                return new WinAuthManager(sm, domainName, sessionLifeTime);
+                IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>()!;
+                return new WinAuthManager(sm, rp, domainName, sessionLifeTime);
             });
         }
 

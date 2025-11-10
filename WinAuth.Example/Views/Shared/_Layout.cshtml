@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -31,6 +32,10 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
                     <ul class="navbar-nav flex-grow-1 flex-row-reverse">
                         <li class="nav-item">
+                            @if (ViewContext.HttpContext.User.Claims.FirstOrDefault(t => t.Type == ClaimTypes.Role) is { })
+                            {
+                                <button class="btn btn-outline-secondary">@ViewContext.HttpContext.User.Claims.FirstOrDefault(t => t.Type == ClaimTypes.Role)!.Value</button>
+                            }
                             @if (ViewContext.HttpContext.User.Identity!.IsAuthenticated)
                             {
                                 <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@ViewContext.HttpContext.User.Identity!.Name)</a>

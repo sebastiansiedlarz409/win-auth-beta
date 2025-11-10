@@ -1,12 +1,13 @@
 using WinAuth;
+using WinAuth.Example.Auth;
 using WinAuth.Session;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>();
+builder.Services.AddSingleton<IWinAuthRoleProvider, WinAuthRoleProvider>();
 
 builder.Services.AddWinAuth("domain.local", 30);
 

@@ -7,6 +7,7 @@ namespace WinAuth
 {
     public sealed class WinAuthManager
     {
+        private readonly IWinAuthRoleProvider? _roleProvider;
         private readonly string _domainName = string.Empty;
         private int _sessionLifeTime = 30;
 
@@ -21,9 +22,10 @@ namespace WinAuth
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(IWinAuthSessionStorage sessionManager, string domainName, int liftime)
+        public WinAuthManager(IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider roleProvider, string domainName, int liftime)
         {
             _sessionManager = sessionManager;
+            _roleProvider = roleProvider;
 
             _domainName = domainName;
 
@@ -47,6 +49,7 @@ namespace WinAuth
 
         /// <summary>
         /// Create session and its cookie
+        /// IMPORTANT: Redirect is neccessary
         /// </summary>
         /// <param name="httpContext">Context</param>
         /// <param name="userName">User login</param>
@@ -125,10 +128,18 @@ namespace WinAuth
             if (validLifeTime)
             {
                 //setup user data for app purposes
-                var claims = new List<Claim>
+                var claims = new List<Claim>();
+                claims.Add(new Claim(ClaimTypes.Name, session.UserName));
+
+                //setup role
+                if(_roleProvider is { })
+                {
+                    var role = _roleProvider.GetRole(session);
+                    if(role is { })
                     {
-                        new Claim(ClaimTypes.Name, session.UserName),
-                    };
+                        claims.Add(new Claim(ClaimTypes.Role, role!.ToString()!));
+                    }
+                }
 
                 var identity = new ClaimsIdentity(claims, "WinAuth");
                 var principal = new ClaimsPrincipal(identity);
