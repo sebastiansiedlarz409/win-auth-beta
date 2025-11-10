@@ -5,7 +5,7 @@ using WinAuth.Session;
 
 namespace WinAuth
 {
-    public class WinAuthManager
+    public sealed class WinAuthManager
     {
         private readonly string _domainName = string.Empty;
         private int _sessionLifeTime = 30;

@@ -3,7 +3,7 @@ using System;
 
 namespace WinAuth.Session
 {
-    public class WinAuthSessionMemoryStorage : IWinAuthSessionStorage
+    public sealed class WinAuthSessionMemoryStorage : IWinAuthSessionStorage
     {
         private readonly object _lock = new object();
         private List<WinAuthSession> _sessions = new List<WinAuthSession>();

@@ -1,6 +1,6 @@
 ﻿namespace WinAuth.Exceptions
 {
-    public class WinAuthSetupException : Exception
+    public sealed class WinAuthSetupException : Exception
     {
         public WinAuthSetupException(string msg) : base(msg) { }
     }

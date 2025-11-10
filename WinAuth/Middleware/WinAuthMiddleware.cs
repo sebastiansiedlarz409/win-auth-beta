@@ -6,7 +6,7 @@ using WinAuth.Attributes;
 
 namespace WinAuth.Middleware
 {
-    public class WinAuthMiddleware
+    public sealed class WinAuthMiddleware
     {
         private readonly RequestDelegate _next;
 
