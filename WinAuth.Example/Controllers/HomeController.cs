@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WinAuth.Attributes;
+using WinAuth.Example.Auth;
 
 namespace WinAuth.Example.Controllers
 {
@@ -10,6 +11,14 @@ namespace WinAuth.Example.Controllers
         public HomeController(WinAuthManager authManager)
         {
             _authManager = authManager;
+        }
+
+        //forbidden page
+        //winauth redirect here when user role not allowe him access other action
+        [WinAuthAccess(WinAuthAccess.Forbidden)]
+        public IActionResult Forbidden()
+        {
+            return View();
         }
 
         //login page
@@ -44,6 +53,13 @@ namespace WinAuth.Example.Controllers
         //non public page
         [WinAuthAccess(WinAuthAccess.Authorized)]
         public IActionResult Page()
+        {
+            return View();
+        }
+
+        //admin page
+        [WinAuthAccess(WinAuthAccess.Authorized, "ADMIN")]
+        public IActionResult Admin()
         {
             return View();
         }

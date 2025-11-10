@@ -101,7 +101,7 @@ namespace WinAuth
         /// Checks session liftime
         /// </summary>
         /// <param name="httpContext">Context</param>
-        /// <returns></returns>
+        /// <returns>Valid session</returns>
         public bool IsSessionAlive(HttpContext httpContext)
         {
             //session id

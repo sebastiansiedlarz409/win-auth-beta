@@ -83,8 +83,24 @@ namespace WinAuth.Middleware
                 //go to destination page
                 else
                 {
-                    await _next(context);
-                    return;
+                    if(access.Role is null)
+                    {
+                        await _next(context);
+                        return;
+                    }
+                    else
+                    {
+                        if (context.User.IsInRole(access.Role))
+                        {
+                            await _next(context);
+                            return;
+                        }
+                        else
+                        {
+                            context.Response.Redirect("/Forbidden", false);
+                            return;
+                        }
+                    }
                 }
             }
         }
