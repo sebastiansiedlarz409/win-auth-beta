@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using System.Diagnostics;
 using System.Reflection;
 using WinAuth.Attributes;
 
@@ -42,6 +41,10 @@ namespace WinAuth.Middleware
                 return;
             }
 
+            //check if session exist
+            //if exists checks if its alive as well
+            var validSessionId = _authManager.IsSessionAlive(context);
+
             //get access mode attribute
             var access = GetAccessMode(route);
             if(access is not { })
@@ -49,10 +52,6 @@ namespace WinAuth.Middleware
                 await _next(context);
                 return;
             }
-
-            //check if session exist
-            //if exists checks if its alive as well
-            var validSessionId = _authManager.IsSessionAlive(context);
 
             if (access.Access == WinAuthAccess.Login)
             {

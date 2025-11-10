@@ -60,9 +60,6 @@ namespace WinAuth
             //set cookie in context
             httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString());
 
-            //setup identity
-            IsSessionAlive(httpContext);
-
             //return session id
             return session.SessionId;
         }

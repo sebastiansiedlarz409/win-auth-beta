@@ -31,7 +31,7 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
                     <ul class="navbar-nav flex-grow-1 flex-row-reverse">
                         <li class="nav-item">
-                            @if (authManager.IsSessionAlive(ViewContext.HttpContext))
+                            @if (ViewContext.HttpContext.User.Identity!.IsAuthenticated)
                             {
                                 <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@ViewContext.HttpContext.User.Identity!.Name)</a>
                             }
