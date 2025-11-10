@@ -123,9 +123,9 @@ namespace WinAuth
                 return false;
             }
 
-            bool valid = session.ExpirationDate >= DateTime.Now;
+            bool validLifeTime = session.ExpirationDate >= DateTime.Now;
 
-            if (valid)
+            if (validLifeTime)
             {
                 //setup user data for app purposes
                 var claims = new List<Claim>
@@ -142,13 +142,12 @@ namespace WinAuth
                 //not every time due to perfomance of session manager
                 if (session.ExpirationDate - DateTime.Now < TimeSpan.FromMinutes(2))
                 {
-                    _sessionManager.RemoveSession(session);
                     session.ExpirationDate.AddMinutes(_sessionLifeTime);
-                    _sessionManager.StoreSession(session);
+                    _sessionManager.UpdateSession(session);
                 }
             }
 
-            return valid;
+            return validLifeTime;
         }
     }
 }

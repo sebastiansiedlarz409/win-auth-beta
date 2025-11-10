@@ -7,6 +7,14 @@
         /// </summary>
         /// <param name="session">Session object</param>
         public void StoreSession(WinAuthSession session);
+
+        /// <summary>
+        /// Additional method for session updating
+        /// WinAuth needs to update session life time when its near to end
+        /// This metods allow user to handle save individually for better performance
+        /// </summary>
+        /// <param name="session"></param>
+        public void UpdateSession(WinAuthSession session);
         
         /// <summary>
         /// Retrive session from storage
