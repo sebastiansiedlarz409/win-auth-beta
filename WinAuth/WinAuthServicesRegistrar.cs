@@ -66,7 +66,7 @@ namespace WinAuth
             //add login route to routes table base on WinAuthAccessAttribute
             CreateRoutes(app, assembly, loginRoutePattern, forbiddenRoutePattern);
 
-            app.UseMiddleware<WinAuthMiddleware>(assembly);
+            app.UseMiddleware<WinAuthMiddleware>(assembly, loginRoutePattern, forbiddenRoutePattern);
         }
 
         /// <summary>

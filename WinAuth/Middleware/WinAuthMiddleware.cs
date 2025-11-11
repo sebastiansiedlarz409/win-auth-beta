@@ -12,12 +12,17 @@ namespace WinAuth.Middleware
         private readonly WinAuthManager _authManager;
         private readonly Assembly _assembly;
 
-        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly)
+        private string _loginRoute;
+        private string _forbiddenRoute;
+
+        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly, string loginRoute, string forbiddenRoute)
         {
             _next = next;
 
             _authManager = authManager;
             _assembly = assembly;
+            _loginRoute = loginRoute;
+            _forbiddenRoute = forbiddenRoute;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -76,7 +81,7 @@ namespace WinAuth.Middleware
                 //redirect to login
                 if (!validSessionId)
                 {
-                    context.Response.Redirect("/Login", false);
+                    context.Response.Redirect(_loginRoute, false);
                     return;
                 }
                 //client pass session id
@@ -97,7 +102,7 @@ namespace WinAuth.Middleware
                         }
                         else
                         {
-                            context.Response.Redirect("/Forbidden", false);
+                            context.Response.Redirect(_forbiddenRoute, false);
                             return;
                         }
                     }
