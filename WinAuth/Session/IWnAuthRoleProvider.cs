@@ -8,5 +8,12 @@
         /// <param name="session">Session object</param>
         /// <returns>Role object - it will be save as claim</returns>
         public object? GetRole(WinAuthSession session);
+
+        /// <summary>
+        /// Check if user's role is enought to get access
+        /// </summary>
+        /// <param name="session">Session object</param>
+        /// <returns>True if user has access</returns>
+        public bool HasAccess(WinAuthSession session, object? role);
     }
 }

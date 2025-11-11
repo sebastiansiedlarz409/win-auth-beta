@@ -95,7 +95,7 @@ namespace WinAuth.Middleware
                     }
                     else
                     {
-                        if (context.User.IsInRole(access.Role))
+                        if (_authManager.HasAccess(context, access.Role))
                         {
                             await _next(context);
                             return;

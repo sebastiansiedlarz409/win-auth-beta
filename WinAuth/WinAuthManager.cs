@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using System.DirectoryServices.AccountManagement;
+using System.Net.Http;
+using System.Security.Claims;
 using WinAuth.Session;
 
 namespace WinAuth
@@ -117,12 +118,12 @@ namespace WinAuth
             var sid = new Guid(sessionId);
             var session = _sessionManager.GetSession(sid);
 
-            //if session exist in storage check liftime
             if (session is not { })
             {
                 return false;
             }
-
+            
+            //if session exist in storage check liftime
             bool validLifeTime = session.ExpirationDate >= DateTime.Now;
 
             if (validLifeTime)
@@ -156,6 +157,36 @@ namespace WinAuth
             }
 
             return validLifeTime;
+        }
+
+        public bool HasAccess(HttpContext httpContext, string role)
+        {
+            //if there is no role system
+            //every logged user has access to everything
+            if(_roleProvider is null)
+            {
+                return true;
+            }
+
+            //session id
+            var sessionId = httpContext.Request.Cookies
+                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
+
+            //check session id
+            if (sessionId is not { })
+            {
+                return false;
+            }
+
+            var sid = new Guid(sessionId);
+            var session = _sessionManager.GetSession(sid);
+
+            if (session is not { })
+            {
+                return false;
+            }
+
+            return _roleProvider.HasAccess(session, role);
         }
     }
 }
