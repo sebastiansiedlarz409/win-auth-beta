@@ -4,7 +4,16 @@ Its simple library for ASP.NET CORE combining authorization/authentication via t
 
 ## Setup
 
-Create exacly one login action using attribute:
+Create exacly one forbidden action using attribute (all attempts at unauthorized access to actions requiring a higher role will be redirected here):
+```
+[WinAuthAccess(WinAuthAccess.Forbidden)]
+public IActionResult Forbidden()
+{
+    return View();
+}
+```
+
+Create exacly one login action using attribute (all attempts at unauthorized access to actions requiring login will be redirected here):
 ```
 [WinAuthAccess(WinAuthAccess.Login)]
 public IActionResult Login()
@@ -51,6 +60,19 @@ public interface IWinAuthSessionStorage
 builder.Services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>();
 ```
 
+OPTIONAL: Create own role provider mechanism by implementing IWinAuthRoleProvider adn register it in DI. By default there is no role provider - all actions with specified role will be freely available.
+```
+public interface IWinAuthRoleProvider
+{
+    public object? GetRole(WinAuthSession session);
+    public bool HasAccess(WinAuthSession session, object? role);
+}
+
+//program.cs
+//register it before calling AddWinAuth()
+builder.Services.AddSingleton<IWinAuthRoleProvider, WinAuthRoleProvider>();
+```
+
 Configure DI and Middleware
 ```
 //program.cs
@@ -61,7 +83,7 @@ builder.Services.AddWinAuth("domain.local" /*DOMAIN NAME*/, 30 /*SESSION LIFETIM
 app.UseRouting();
 ...
 //use middleware after routing
-app.UseWinAuth(typeof(Program).Assembly /*MVC ASSEMBLY*/, "login" /*LOGIN ROUTE NAME (WILL BE CREATED BY LIB)*/);
+app.UseWinAuth(typeof(Program).Assembly /*MVC ASSEMBLY*/, "login" /*LOGIN ROUTE NAME (WILL BE CREATED BY LIB)*/, "forbidden" /*FORBIDDEN ROUTE NAME (ACCESS DENIED REDIRECT)*/);
 
 ```
 
@@ -72,6 +94,13 @@ Mark your controllers actions like this using attribute:
 //non public page
 [WinAuthAccess(WinAuthAccess.Authorized)]
 public IActionResult Page()
+{
+    return View();
+}
+
+//non public page
+[WinAuthAccess(WinAuthAccess.Authorized, "ADMIN")]
+public IActionResult Page2()
 {
     return View();
 }

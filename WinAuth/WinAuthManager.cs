@@ -22,7 +22,7 @@ namespace WinAuth
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider roleProvider, string domainName, int liftime)
+        public WinAuthManager(IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider? roleProvider, string domainName, int liftime)
         {
             _sessionManager = sessionManager;
             _roleProvider = roleProvider;
@@ -135,6 +135,12 @@ namespace WinAuth
             return validLifeTime;
         }
 
+        /// <summary>
+        /// Return user name
+        /// Null means user is not logged in
+        /// </summary>
+        /// <param name="httpContext">HTTP Context</param>
+        /// <returns>User name</returns>
         public string? UserName(HttpContext httpContext)
         {
             if (!httpContext.User.Identity!.IsAuthenticated)
@@ -146,11 +152,10 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Return user name
-        /// Null means user is not logged in
+        /// Return role name
         /// </summary>
         /// <param name="httpContext">HTTP Context</param>
-        /// <returns>User name</returns>
+        /// <returns>Role name</returns>
         public object? UserRole(HttpContext httpContext)
         {
             //if there is no role system
