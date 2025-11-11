@@ -60,15 +60,7 @@ namespace WinAuth
             var session = new WinAuthSession(userName, _sessionLifeTime);
             _sessionManager.StoreSession(session);
 
-            //set cookie in context
-            var options = new CookieOptions
-            {
-                Expires = DateTimeOffset.UtcNow.AddMinutes(_sessionLifeTime), 
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict
-            };
-            httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString(), options);
+            SetCookie(httpContext, session);
 
             //return session id
             return session.SessionId;
@@ -136,6 +128,7 @@ namespace WinAuth
                 {
                     session.ExpirationDate.AddMinutes(_sessionLifeTime);
                     _sessionManager.UpdateSession(session);
+                    SetCookie(httpContext, session);
                 }
             }
 
@@ -152,6 +145,12 @@ namespace WinAuth
             return httpContext.User.Identity.Name;
         }
 
+        /// <summary>
+        /// Return user name
+        /// Null means user is not logged in
+        /// </summary>
+        /// <param name="httpContext">HTTP Context</param>
+        /// <returns>User name</returns>
         public object? UserRole(HttpContext httpContext)
         {
             //if there is no role system
@@ -171,6 +170,13 @@ namespace WinAuth
             return _roleProvider.GetRole(session);
         }
 
+        /// <summary>
+        /// Check if provided role is high enough
+        /// base on IWinAuthRoleProvider implementation
+        /// </summary>
+        /// <param name="httpContext">HTTP Context</param>
+        /// <param name="role">Minimal role</param>
+        /// <returns>True if access is permitted</returns>
         public bool HasAccess(HttpContext httpContext, string role)
         {
             //if there is no role system
@@ -190,6 +196,11 @@ namespace WinAuth
             return _roleProvider.HasAccess(session, role);
         }
 
+        /// <summary>
+        /// Get session base on request session
+        /// </summary>
+        /// <param name="httpContext">HTTP Context</param>
+        /// <returns>Sesson object</returns>
         private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
         {
             //session id
@@ -206,6 +217,24 @@ namespace WinAuth
             var session = _sessionManager.GetSession(sid);
 
             return session;
+        }
+
+        /// <summary>
+        /// Set response cookie
+        /// </summary>
+        /// <param name="httpContext">HTTP Context</param>
+        /// <param name="session">Session object</param>
+        private void SetCookie(HttpContext httpContext, WinAuthSession session)
+        {
+            //set cookie in context
+            var options = new CookieOptions
+            {
+                Expires = session.ExpirationDate,
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            };
+            httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString(), options);
         }
     }
 }
