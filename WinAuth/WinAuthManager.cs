@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.DirectoryServices.AccountManagement;
-using System.Net.Http;
 using System.Security.Claims;
 using WinAuth.Session;
 
@@ -76,19 +75,7 @@ namespace WinAuth
         /// <param name="httpContext">Context</param>
         public void KillSession(HttpContext httpContext)
         {
-            //get session cookie from context
-            var sessionId = httpContext.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
-
-            //return if cookie does not exist
-            if (sessionId is not { })
-            {
-                return;
-            }
-
-            var sid = new Guid(sessionId);
-
-            var session = _sessionManager.GetSession(sid);
+            var session = GetSessionFromContext(httpContext);
 
             //if session exist inside session storage remove it
             if (session is { })
@@ -105,18 +92,7 @@ namespace WinAuth
         /// <returns>Valid session</returns>
         public bool IsSessionAlive(HttpContext httpContext)
         {
-            //session id
-            var sessionId = httpContext.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
-
-            //check session id
-            if (sessionId is not { })
-            {
-                return false;
-            }
-
-            var sid = new Guid(sessionId);
-            var session = _sessionManager.GetSession(sid);
+            var session = GetSessionFromContext(httpContext);
 
             if (session is not { })
             {
@@ -159,6 +135,35 @@ namespace WinAuth
             return validLifeTime;
         }
 
+        public string? UserName(HttpContext httpContext)
+        {
+            if (!httpContext.User.Identity!.IsAuthenticated)
+            {
+                return null;
+            }
+
+            return httpContext.User.Identity.Name;
+        }
+
+        public object? UserRole(HttpContext httpContext)
+        {
+            //if there is no role system
+            //every logged user has access to everything
+            if (_roleProvider is null)
+            {
+                return null;
+            }
+
+            var session = GetSessionFromContext(httpContext);
+
+            if (session is not { })
+            {
+                return null;
+            }
+
+            return _roleProvider.GetRole(session);
+        }
+
         public bool HasAccess(HttpContext httpContext, string role)
         {
             //if there is no role system
@@ -168,18 +173,7 @@ namespace WinAuth
                 return true;
             }
 
-            //session id
-            var sessionId = httpContext.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
-
-            //check session id
-            if (sessionId is not { })
-            {
-                return false;
-            }
-
-            var sid = new Guid(sessionId);
-            var session = _sessionManager.GetSession(sid);
+            var session = GetSessionFromContext(httpContext);
 
             if (session is not { })
             {
@@ -187,6 +181,24 @@ namespace WinAuth
             }
 
             return _roleProvider.HasAccess(session, role);
+        }
+
+        private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
+        {
+            //session id
+            var sessionId = httpContext.Request.Cookies
+                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
+
+            //check session id
+            if (sessionId is not { })
+            {
+                return null;
+            }
+
+            var sid = new Guid(sessionId);
+            var session = _sessionManager.GetSession(sid);
+
+            return session;
         }
     }
 }
