@@ -61,7 +61,14 @@ namespace WinAuth
             _sessionManager.StoreSession(session);
 
             //set cookie in context
-            httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString());
+            var options = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_sessionLifeTime), 
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            };
+            httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString(), options);
 
             //return session id
             return session.SessionId;
@@ -100,7 +107,7 @@ namespace WinAuth
             }
             
             //if session exist in storage check liftime
-            bool validLifeTime = session.ExpirationDate >= DateTime.Now;
+            bool validLifeTime = session.ExpirationDate >= DateTime.UtcNow;
 
             if (validLifeTime)
             {

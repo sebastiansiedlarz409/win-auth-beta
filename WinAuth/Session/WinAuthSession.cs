@@ -11,7 +11,7 @@
         public WinAuthSession(string userName, int sessionLifeTime)
         {
             SessionId = Guid.NewGuid();
-            ExpirationDate = DateTime.Now.AddMinutes(sessionLifeTime);
+            ExpirationDate = DateTime.UtcNow.AddMinutes(sessionLifeTime);
 
             UserName = userName;
         }
