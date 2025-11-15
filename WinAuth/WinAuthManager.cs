@@ -61,8 +61,8 @@ namespace WinAuth
         /// Create session and its cookie
         /// IMPORTANT: Redirect is neccessary
         /// </summary>
-        /// <param name="httpContext">Context</param>
-        /// <param name="userName">User login</param>
+        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="userName">Username</param>
         /// <returns></returns>
         public Guid CreateSession(HttpContext httpContext, string userName)
         {
@@ -81,7 +81,7 @@ namespace WinAuth
         /// Check if session exist in storage
         /// Remove it
         /// </summary>
-        /// <param name="httpContext">Context</param>
+        /// <param name="httpContext">HTTP context object</param>
         public void KillSession(HttpContext httpContext)
         {
             var session = GetSessionFromContext(httpContext);
@@ -97,7 +97,7 @@ namespace WinAuth
         /// Check session storage contains session
         /// Checks session liftime
         /// </summary>
-        /// <param name="httpContext">Context</param>
+        /// <param name="httpContext">HTTP context object</param>
         /// <returns>Valid session</returns>
         public bool IsSessionAlive(HttpContext httpContext)
         {
@@ -145,6 +145,11 @@ namespace WinAuth
             return validLifeTime;
         }
 
+        /// <summary>
+        /// Check if user is logged in
+        /// </summary>
+        /// <param name="httpContext">HTTP context object</param>
+        /// <returns>True if user is logged in</returns>
         public bool IsAuthenticated(HttpContext httpContext)
         {
             return _contextWrapper.IsAuthenticated(httpContext);
@@ -153,8 +158,8 @@ namespace WinAuth
         /// <summary>
         /// Return user name
         /// </summary>
-        /// <param name="httpContext">HTTP Context</param>
-        /// <returns>User name</returns>
+        /// <param name="httpContext">HTTP context object</param>
+        /// <returns>Username</returns>
         public string? UserName(HttpContext httpContext)
         {
             return _contextWrapper.GetUserName(httpContext);
@@ -163,7 +168,7 @@ namespace WinAuth
         /// <summary>
         /// Return role name
         /// </summary>
-        /// <param name="httpContext">HTTP Context</param>
+        /// <param name="httpContext">HTTP context object</param>
         /// <returns>Role name</returns>
         public object? UserRole(HttpContext httpContext)
         {
@@ -188,8 +193,8 @@ namespace WinAuth
         /// Check if provided role is high enough
         /// base on IWinAuthRoleProvider implementation
         /// </summary>
-        /// <param name="httpContext">HTTP Context</param>
-        /// <param name="role">Minimal role</param>
+        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="role">Minimal role for access</param>
         /// <returns>True if access is permitted</returns>
         public bool HasAccess(HttpContext httpContext, string role)
         {
@@ -213,7 +218,7 @@ namespace WinAuth
         /// <summary>
         /// Get session base on request session
         /// </summary>
-        /// <param name="httpContext">HTTP Context</param>
+        /// <param name="httpContext">HTTP context object</param>
         /// <returns>Sesson object</returns>
         private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
         {
