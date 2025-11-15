@@ -7,7 +7,6 @@ namespace WinAuth
 {
     public sealed class WinAuthManager
     {
-        private readonly IWinAuthRoleProvider? _roleProvider;
         private readonly string _domainName = string.Empty;
         private int _sessionLifeTime = 30;
 
@@ -17,15 +16,26 @@ namespace WinAuth
         private readonly IWinAuthSessionStorage _sessionManager;
 
         /// <summary>
+        /// User can implement own role storage base on db, redis, memory or etc
+        /// </summary>
+        private readonly IWinAuthRoleProvider? _roleProvider;
+
+        /// <summary>
+        /// Wrapper over ASP.NET http context object
+        /// </summary>
+        private readonly WinAuthHttpContextWrapper _contextWrapper;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider? roleProvider, string domainName, int liftime)
+        public WinAuthManager(WinAuthHttpContextWrapper contextWrapper, IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider? roleProvider, string domainName, int liftime)
         {
             _sessionManager = sessionManager;
             _roleProvider = roleProvider;
+            _contextWrapper = contextWrapper;
 
             _domainName = domainName;
 
@@ -209,8 +219,7 @@ namespace WinAuth
         private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
         {
             //session id
-            var sessionId = httpContext.Request.Cookies
-                                .FirstOrDefault(t => t.Key == "winauth_session_id").Value;
+            var sessionId = _contextWrapper.GetCookieValue(httpContext, "winauth_session_id");
 
             //check session id
             if (sessionId is not { })
@@ -223,23 +232,15 @@ namespace WinAuth
 
             return session;
         }
-
+        
         /// <summary>
-        /// Set response cookie
+        /// Set session cookie
         /// </summary>
-        /// <param name="httpContext">HTTP Context</param>
+        /// <param name="httpContext">HTTP context object</param>
         /// <param name="session">Session object</param>
         private void SetCookie(HttpContext httpContext, WinAuthSession session)
         {
-            //set cookie in context
-            var options = new CookieOptions
-            {
-                Expires = session.ExpirationDate,
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict
-            };
-            httpContext.Response.Cookies.Append("winauth_session_id", session.SessionId.ToString(), options);
+            _contextWrapper.SetHttpCookie(httpContext, "winauth_session_id", session.SessionId.ToString(), session.ExpirationDate);
         }
     }
 }

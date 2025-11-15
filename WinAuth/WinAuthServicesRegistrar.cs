@@ -38,12 +38,16 @@ namespace WinAuth
                 throw new WinAuthSetupException($"Implementation of IWinAuthSessionManager not found...");
             }
 
+            //context wrapper
+            services.AddSingleton<WinAuthHttpContextWrapper>();
+
             //register auth manager
             services.AddSingleton(t =>
             {
-                IWinAuthSessionStorage? sm = t.GetService<IWinAuthSessionStorage>()!;
-                IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>()!;
-                return new WinAuthManager(sm, rp, domainName, sessionLifeTime);
+                IWinAuthSessionStorage sm = t.GetService<IWinAuthSessionStorage>()!;
+                IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>();
+                WinAuthHttpContextWrapper cw = t.GetService<WinAuthHttpContextWrapper>()!;
+                return new WinAuthManager(cw, sm, rp, domainName, sessionLifeTime);
             });
         }
 
