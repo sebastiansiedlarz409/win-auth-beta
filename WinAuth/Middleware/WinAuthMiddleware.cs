@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Routing;
 using System.Reflection;
 using WinAuth.Attributes;
+using WinAuth.Exceptions;
 
 namespace WinAuth.Middleware
 {
@@ -21,14 +22,16 @@ namespace WinAuth.Middleware
 
             _authManager = authManager;
             _assembly = assembly;
+
             _loginRoute = loginRoute;
             _forbiddenRoute = forbiddenRoute;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            //skip validation for resources files like css or js
-            if (Path.HasExtension(context.Request.Path))
+            //skip non-mvc requests
+            var endpoint = context.GetEndpoint();
+            if (endpoint == null || endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>() == null)
             {
                 await _next(context);
                 return;
@@ -42,8 +45,7 @@ namespace WinAuth.Middleware
             //skip auth validation
             if(route.Values.Count == 0)
             {
-                await _next(context);
-                return;
+                throw new WinAuthExecutionException("Missing route configuration!");
             }
 
             //check if session exist
@@ -71,7 +73,7 @@ namespace WinAuth.Middleware
                 //pass to login is not allowed
                 else
                 {
-                    context.Response.Redirect("/", false);
+                    context.Response.Redirect(_forbiddenRoute, false);
                     return;
                 }
             }
@@ -126,7 +128,7 @@ namespace WinAuth.Middleware
                 .FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
 
             //if controller is null led other middleware handle it
-            if (controller is not { })
+            if (controller is null)
             {
                 return null;
             }
@@ -137,7 +139,7 @@ namespace WinAuth.Middleware
                 .FirstOrDefault(t => t.Name == actionName!.ToString());
 
             //double check
-            if (action is not { })
+            if (action is null)
             {
                 return null;
             }
@@ -146,7 +148,7 @@ namespace WinAuth.Middleware
             var attribute = action.GetCustomAttribute(typeof(WinAuthAccessAttribute));
 
             //double check
-            if (attribute is not { })
+            if (attribute is null)
             {
                 return null;
             }

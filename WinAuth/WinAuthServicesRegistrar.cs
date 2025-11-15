@@ -13,11 +13,11 @@ namespace WinAuth
     public static class WinAuthServicesRegistrar
     {
         /// <summary>
-        /// Configure WinAuth
+        /// Configure WinAuth and check dependencies
         /// </summary>
         /// <param name="domainName">Target domain name</param>
         /// <param name="sessionLifeTime">Session life time in minutes</param>
-        /// <exception cref="WinAuthSetupException">Thrown when none or more than one IWinAuthSessionManager implementation has been registered</exception>
+        /// <exception cref="WinAuthSetupException">Thrown when setup failed due to wrong platform, too short session lifetime or lack of required services in DI</exception>
         public static void AddWinAuth(this IServiceCollection services, string domainName, int sessionLifeTime)
         {
             //check platform
@@ -33,18 +33,13 @@ namespace WinAuth
             }
 
             //check if session storage provider has been registered
-            //if any register default one
             if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() == 0)
             {
-                services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>();
-            }
-            else if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() > 1)
-            {
-                throw new WinAuthSetupException($"Implementation of IWinAuthSessionManager can be registere only once...");
+                throw new WinAuthSetupException($"Implementation of IWinAuthSessionManager not found...");
             }
 
             //register auth manager
-            services.AddSingleton<WinAuthManager>(t =>
+            services.AddSingleton(t =>
             {
                 IWinAuthSessionStorage? sm = t.GetService<IWinAuthSessionStorage>()!;
                 IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>()!;
@@ -55,17 +50,23 @@ namespace WinAuth
         /// <summary>
         /// Add middlware to pipeline
         /// </summary>
-        /// <param name="assembly">Main assembly/Controllers assembly</param>
-        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoutePattern = "login", string forbiddenRoutePattern = "forbidden")
+        /// <param name="assembly">MVC assembly</param>
+        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoutePattern = "Login", string forbiddenRoutePattern = "Forbidden")
         {
             if (string.IsNullOrEmpty(loginRoutePattern))
             {
                 throw new WinAuthSetupException($"Invalid login route name...");
             }
 
-            //add login route to routes table base on WinAuthAccessAttribute
+            if (string.IsNullOrEmpty(forbiddenRoutePattern))
+            {
+                throw new WinAuthSetupException($"Invalid forbidden route name...");
+            }
+
+            //try to create login and forbidden route
             CreateRoutes(app, assembly, loginRoutePattern, forbiddenRoutePattern);
 
+            //add middleware to pipe line
             app.UseMiddleware<WinAuthMiddleware>(assembly, loginRoutePattern, forbiddenRoutePattern);
         }
 

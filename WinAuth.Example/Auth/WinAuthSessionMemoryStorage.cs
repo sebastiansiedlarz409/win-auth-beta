@@ -1,7 +1,7 @@
 ﻿
-using System;
+using WinAuth.Session;
 
-namespace WinAuth.Session
+namespace WinAuth.Example.Auth
 {
     public sealed class WinAuthSessionMemoryStorage : IWinAuthSessionStorage
     {
