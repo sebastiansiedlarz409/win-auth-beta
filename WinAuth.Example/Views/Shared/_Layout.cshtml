@@ -39,7 +39,7 @@
                             {
                                 <button class="btn btn-outline-secondary">@authManager.UserRole(ViewContext.HttpContext)!.ToString()</button>
                             }
-                            @if (authManager.UserName(ViewContext.HttpContext) is { })
+                            @if (authManager.IsAuthenticated(ViewContext.HttpContext))
                             {
                                 <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@authManager.UserName(ViewContext.HttpContext))</a>
                             }

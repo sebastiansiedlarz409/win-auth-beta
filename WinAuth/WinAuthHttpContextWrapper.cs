@@ -4,6 +4,16 @@ namespace WinAuth
 {
     public class WinAuthHttpContextWrapper
     {
+        public bool IsAuthenticated(HttpContext httpContext)
+        {
+            return httpContext.User.Identity!.IsAuthenticated;
+        }
+
+        public string? GetUserName(HttpContext httpContext)
+        {
+            return httpContext.User.Identity!.Name;
+        }
+
         public string? GetCookieValue(HttpContext httpContext, string name)
         {
             var cookie = httpContext.Request.Cookies

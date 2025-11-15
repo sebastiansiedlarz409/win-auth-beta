@@ -123,7 +123,7 @@ namespace WinAuth
                     var role = _roleProvider.GetRole(session);
                     if(role is { })
                     {
-                        claims.Add(new Claim(ClaimTypes.Role, role!.ToString()!));
+                        claims.Add(new Claim(ClaimTypes.Role, role!));
                     }
                 }
 
@@ -145,20 +145,19 @@ namespace WinAuth
             return validLifeTime;
         }
 
+        public bool IsAuthenticated(HttpContext httpContext)
+        {
+            return _contextWrapper.IsAuthenticated(httpContext);
+        }
+
         /// <summary>
         /// Return user name
-        /// Null means user is not logged in
         /// </summary>
         /// <param name="httpContext">HTTP Context</param>
         /// <returns>User name</returns>
         public string? UserName(HttpContext httpContext)
         {
-            if (!httpContext.User.Identity!.IsAuthenticated)
-            {
-                return null;
-            }
-
-            return httpContext.User.Identity.Name;
+            return _contextWrapper.GetUserName(httpContext);
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿using System;
-using WinAuth.Session;
+﻿using WinAuth.Session;
 
 namespace WinAuth.Example.Auth
 {
@@ -12,18 +11,13 @@ namespace WinAuth.Example.Auth
 
     public class WinAuthRoleProvider : IWinAuthRoleProvider
     {
-        public object? GetRole(WinAuthSession session)
+        public string? GetRole(WinAuthSession session)
         {
             return Roles.SUPERADMIN.ToString();
         }
 
-        public bool HasAccess(WinAuthSession session, object? role)
+        public bool HasAccess(WinAuthSession session, string role)
         {
-            if(role is null)
-            {
-                return true;
-            }
-
             object? targetRole = null;
             if(!Enum.TryParse(typeof(Roles), role.ToString(), out targetRole))
             {
