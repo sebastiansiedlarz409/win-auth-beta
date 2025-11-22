@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.DirectoryServices.AccountManagement;
 using System.Security.Claims;
+using WinAuth.Exceptions;
 using WinAuth.Session;
 
 namespace WinAuth
@@ -31,7 +32,11 @@ namespace WinAuth
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(WinAuthHttpContextWrapper contextWrapper, IWinAuthSessionStorage sessionManager, IWinAuthRoleProvider? roleProvider, string domainName, int liftime)
+        public WinAuthManager(WinAuthHttpContextWrapper contextWrapper,
+                              IWinAuthSessionStorage sessionManager,
+                              IWinAuthRoleProvider? roleProvider,
+                              string domainName,
+                              int liftime)
         {
             _sessionManager = sessionManager;
             _roleProvider = roleProvider;
@@ -43,7 +48,7 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Check credantials in domain
+        /// Check credentials in domain
         /// </summary>
         /// <param name="username">Domain user</param>
         /// <param name="password">Domain password</param>
@@ -58,17 +63,25 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Create session and its cookie
-        /// IMPORTANT: Redirect is neccessary
+        /// Create session, save it in storage, create cookie
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="httpContext">HTTP Context Object</param>
         /// <param name="userName">Username</param>
-        /// <returns></returns>
+        /// <returns>Session Id as Guid</returns>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
         public Guid CreateSession(HttpContext httpContext, string userName)
         {
             //create new session and store it
             var session = new WinAuthSession(userName, _sessionLifeTime);
-            _sessionManager.StoreSession(session);
+
+            try
+            {
+                _sessionManager.StoreSession(session);
+            }
+            catch (Exception ex)
+            {
+                throw new WinAuthExecutionException($"Store session procedure failed! Check inner exception!", ex);
+            }
 
             SetCookie(httpContext, session);
 
@@ -77,11 +90,10 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Reads session cookie from context
-        /// Check if session exist in storage
-        /// Remove it
+        /// Remove session from storage
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="httpContext">HTTP Context Object</param>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
         public void KillSession(HttpContext httpContext)
         {
             var session = GetSessionFromContext(httpContext);
@@ -89,7 +101,14 @@ namespace WinAuth
             //if session exist inside session storage remove it
             if (session is { })
             {
-                _sessionManager.RemoveSession(session);
+                try
+                {
+                    _sessionManager.RemoveSession(session);
+                }
+                catch (Exception ex)
+                {
+                    throw new WinAuthExecutionException($"Remove session procedure failed! Check inner exception!", ex);
+                }
             }
         }
 
@@ -97,8 +116,9 @@ namespace WinAuth
         /// Check session storage contains session
         /// Checks session liftime
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="httpContext">HTTP Context Object</param>
         /// <returns>Valid session</returns>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage or IWinAuthRoleProvider fail</exception>
         public bool IsSessionAlive(HttpContext httpContext)
         {
             var session = GetSessionFromContext(httpContext);
@@ -120,8 +140,17 @@ namespace WinAuth
                 //setup role
                 if(_roleProvider is { })
                 {
-                    var role = _roleProvider.GetRole(session);
-                    if(role is { })
+                    string? role = null;
+                    try
+                    {
+                        role = _roleProvider.GetRole(session);
+                    }
+                    catch(Exception ex)
+                    {
+                        throw new WinAuthExecutionException($"Get role procedure failed! Check inner exception!", ex);
+                    }
+
+                    if (role is { })
                     {
                         claims.Add(new Claim(ClaimTypes.Role, role!));
                     }
@@ -137,7 +166,15 @@ namespace WinAuth
                 if (session.ExpirationDate - DateTime.Now < TimeSpan.FromMinutes(2))
                 {
                     session.ExpirationDate.AddMinutes(_sessionLifeTime);
-                    _sessionManager.UpdateSession(session);
+
+                    try
+                    {
+                        _sessionManager.UpdateSession(session);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new WinAuthExecutionException($"Update session procedure failed! Check inner exception!", ex);
+                    }
                     SetCookie(httpContext, session);
                 }
             }
@@ -159,7 +196,7 @@ namespace WinAuth
         /// Return user name
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
-        /// <returns>Username</returns>
+        /// <returns>Username or null</returns>
         public string? UserName(HttpContext httpContext)
         {
             return _contextWrapper.GetUserName(httpContext);
@@ -170,6 +207,7 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Role name</returns>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
         public object? UserRole(HttpContext httpContext)
         {
             //if there is no role system
@@ -186,7 +224,14 @@ namespace WinAuth
                 return null;
             }
 
-            return _roleProvider.GetRole(session);
+            try
+            {
+                return _roleProvider.GetRole(session);
+            }
+            catch (Exception ex)
+            {
+                throw new WinAuthExecutionException($"Get session procedure failed! Check inner exception!", ex);
+            }
         }
 
         /// <summary>
@@ -196,6 +241,7 @@ namespace WinAuth
         /// <param name="httpContext">HTTP context object</param>
         /// <param name="role">Minimal role for access</param>
         /// <returns>True if access is permitted</returns>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
         public bool HasAccess(HttpContext httpContext, string role)
         {
             //if there is no role system
@@ -212,7 +258,14 @@ namespace WinAuth
                 return false;
             }
 
-            return _roleProvider.HasAccess(session, role);
+            try
+            {
+                return _roleProvider.HasAccess(session, role);
+            }
+            catch (Exception ex)
+            {
+                throw new WinAuthExecutionException($"Hash access procedure failed! Check inner exception!", ex);
+            }
         }
 
         /// <summary>
@@ -220,6 +273,7 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Sesson object</returns>
+        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
         private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
         {
             //session id
@@ -232,7 +286,15 @@ namespace WinAuth
             }
 
             var sid = new Guid(sessionId);
-            var session = _sessionManager.GetSession(sid);
+            WinAuthSession? session = null;
+            try
+            {
+                session = _sessionManager.GetSession(sid);
+            }
+            catch (Exception ex)
+            {
+                throw new WinAuthExecutionException($"Get session procedure failed! Check inner exception!", ex);
+            }
 
             return session;
         }
