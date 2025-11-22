@@ -24,7 +24,7 @@ namespace WinAuth
         /// <summary>
         /// Wrapper over ASP.NET http context object
         /// </summary>
-        private readonly WinAuthHttpContextWrapper _contextWrapper;
+        private readonly IWinAuthHttpContextWrapper _contextWrapper;
 
         /// <summary>
         /// Constructor
@@ -32,7 +32,7 @@ namespace WinAuth
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
-        public WinAuthManager(WinAuthHttpContextWrapper contextWrapper,
+        public WinAuthManager(IWinAuthHttpContextWrapper contextWrapper,
                               IWinAuthSessionStorage sessionManager,
                               IWinAuthRoleProvider? roleProvider,
                               string domainName,
@@ -69,8 +69,13 @@ namespace WinAuth
         /// <param name="userName">Username</param>
         /// <returns>Session Id as Guid</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
-        public Guid CreateSession(HttpContext httpContext, string userName)
+        public Guid? CreateSession(HttpContext httpContext, string userName)
         {
+            if (string.IsNullOrEmpty(userName))
+            {
+                throw new WinAuthExecutionException($"Username must be provided for CreateSession!");
+            }
+
             //create new session and store it
             var session = new WinAuthSession(userName, _sessionLifeTime);
 
@@ -123,7 +128,7 @@ namespace WinAuth
         {
             var session = GetSessionFromContext(httpContext);
 
-            if (session is not { })
+            if (session is null)
             {
                 return false;
             }
