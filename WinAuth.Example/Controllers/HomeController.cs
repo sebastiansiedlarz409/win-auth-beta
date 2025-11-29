@@ -15,7 +15,6 @@ namespace WinAuth.Example.Controllers
 
         //forbidden page
         //winauth redirect here when user role not allowe him access other action
-        [WinAuthAccess(WinAuthAccess.Forbidden)]
         public IActionResult Forbidden()
         {
             return View();
@@ -23,7 +22,6 @@ namespace WinAuth.Example.Controllers
 
         //login page
         //winauth redirect here when use try to access nonpublic page without valid session
-        [WinAuthAccess(WinAuthAccess.Login)]
         public IActionResult Login()
         {
             return View();
@@ -42,7 +40,7 @@ namespace WinAuth.Example.Controllers
         }
 
         //clear session
-        [WinAuthAccess(WinAuthAccess.Authorized)]
+        [WinAuthAuthorize]
         public IActionResult Logout()
         {
             _authManager.KillSession(HttpContext);
@@ -51,14 +49,14 @@ namespace WinAuth.Example.Controllers
         }
 
         //non public page
-        [WinAuthAccess(WinAuthAccess.Authorized)]
+        [WinAuthAuthorize]
         public IActionResult Page()
         {
             return View();
         }
 
         //admin page
-        [WinAuthAccess(WinAuthAccess.Authorized, "ADMIN")]
+        [WinAuthAuthorize("ADMIN")]
         public IActionResult Admin()
         {
             return View();

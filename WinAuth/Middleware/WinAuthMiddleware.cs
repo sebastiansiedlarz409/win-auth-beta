@@ -60,53 +60,33 @@ namespace WinAuth.Middleware
                 return;
             }
 
-            if (access.Access == WinAuthAccess.Login)
+            //client does not pass valid session id
+            //redirect to login
+            if (!validSessionId)
             {
-                //client does not pass valid session id
-                //pass to login is allowed
-                if (!validSessionId) 
+                context.Response.Redirect(_loginRoute, false);
+                return;
+            }
+            //client pass session id
+            //go to destination page
+            else
+            {
+                if (access.Role is null)
                 {
                     await _next(context);
                     return;
                 }
-                //client pass valid session id
-                //pass to login is not allowed
                 else
                 {
-                    context.Response.Redirect(_forbiddenRoute, false);
-                    return;
-                }
-            }
-            else
-            {
-                //client does not pass valid session id
-                //redirect to login
-                if (!validSessionId)
-                {
-                    context.Response.Redirect(_loginRoute, false);
-                    return;
-                }
-                //client pass session id
-                //go to destination page
-                else
-                {
-                    if(access.Role is null)
+                    if (_authManager.HasAccess(context, access.Role))
                     {
                         await _next(context);
                         return;
                     }
                     else
                     {
-                        if (_authManager.HasAccess(context, access.Role))
-                        {
-                            await _next(context);
-                            return;
-                        }
-                        else
-                        {
-                            context.Response.Redirect(_forbiddenRoute, false);
-                            return;
-                        }
+                        context.Response.Redirect(_forbiddenRoute, false);
+                        return;
                     }
                 }
             }
@@ -117,7 +97,7 @@ namespace WinAuth.Middleware
         /// </summary>
         /// <param name="route">Route from HttpContext</param>
         /// <returns>Attribute object or null</returns>
-        private WinAuthAccessAttribute? GetAccessMode(RouteData route)
+        private WinAuthAuthorizeAttribute? GetAccessMode(RouteData route)
         {
             //get controller and action name
             var controllerName = route.Values["controller"];
@@ -145,7 +125,7 @@ namespace WinAuth.Middleware
             }
 
             //get access attribute
-            var attribute = action.GetCustomAttribute(typeof(WinAuthAccessAttribute));
+            var attribute = action.GetCustomAttribute(typeof(WinAuthAuthorizeAttribute));
 
             //double check
             if (attribute is null)
@@ -154,7 +134,7 @@ namespace WinAuth.Middleware
             }
             
             //extrude access mode
-            var access = (WinAuthAccessAttribute)attribute;
+            var access = (WinAuthAuthorizeAttribute)attribute;
 
             return access;
         }

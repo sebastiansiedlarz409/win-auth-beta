@@ -55,87 +55,20 @@ namespace WinAuth
         /// Add middlware to pipeline
         /// </summary>
         /// <param name="assembly">MVC assembly</param>
-        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoutePattern = "Login", string forbiddenRoutePattern = "Forbidden")
+        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoute, string forbiddenRoute)
         {
-            if (string.IsNullOrEmpty(loginRoutePattern))
+            if (string.IsNullOrEmpty(loginRoute))
             {
                 throw new WinAuthSetupException($"Invalid login route name...");
             }
 
-            if (string.IsNullOrEmpty(forbiddenRoutePattern))
+            if (string.IsNullOrEmpty(forbiddenRoute))
             {
                 throw new WinAuthSetupException($"Invalid forbidden route name...");
             }
 
-            //try to create login and forbidden route
-            CreateRoutes(app, assembly, loginRoutePattern, forbiddenRoutePattern);
-
             //add middleware to pipe line
-            app.UseMiddleware<WinAuthMiddleware>(assembly, loginRoutePattern, forbiddenRoutePattern);
-        }
-
-        /// <summary>
-        /// Scan assemby for login and forbidden action
-        /// Done only once during middleware registration
-        /// </summary>
-        /// <param name="assembly">Assembly to scan</param>
-        /// <exception cref="WinAuthRouteException"></exception>
-        private static void CreateRoutes(WebApplication app, Assembly assembly, string loginRoutePattern, string forbiddenRoutePattern)
-        {
-            var controllers = assembly.GetTypes()
-                .Where(t => t.Name.Contains($"Controller"));
-
-            //scan for all action
-            List<(Type, MethodInfo)> controllersActions = new List<(Type, MethodInfo)>();
-            foreach (var controller in controllers)
-            {
-                var actions = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(t => t.ReturnType == typeof(IActionResult) || t.ReturnType == typeof(Task<IActionResult>))
-                    .ToList();
-
-                actions.ForEach(t => controllersActions.Add((controller, t)));
-            }
-
-            var login = false;
-            var forbidden = false;
-
-            foreach (var action in controllersActions)
-            {
-                var attribute = action.Item2.GetCustomAttribute(typeof(WinAuthAccessAttribute));
-                if (attribute is { })
-                {
-                    var access = (WinAuthAccessAttribute)attribute;
-                    if (access.Access == WinAuthAccess.Login)
-                    {
-                        var controllerName = action.Item1.Name.Replace("Controller", "");
-                        var actionName = action.Item2.Name;
-
-                        app.MapControllerRoute(
-                            name: "WinAuthLoginRoute", 
-                            pattern: loginRoutePattern,
-                            defaults: new { controller = controllerName, action = actionName })
-                            .WithStaticAssets();
-
-                        login = true;
-                    }
-                    if (access.Access == WinAuthAccess.Forbidden)
-                    {
-                        var controllerName = action.Item1.Name.Replace("Controller", "");
-                        var actionName = action.Item2.Name;
-
-                        app.MapControllerRoute(
-                            name: "WinAuthForbiddenRoute",
-                            pattern: forbiddenRoutePattern,
-                            defaults: new { controller = controllerName, action = actionName })
-                            .WithStaticAssets();
-
-                        forbidden = true;
-                    }
-                }
-            }
-
-            if(!login || !forbidden)
-                throw new WinAuthRouteException("Cant create login or forbidden action...");
+            app.UseMiddleware<WinAuthMiddleware>(assembly, loginRoute, forbiddenRoute);
         }
     }
 }

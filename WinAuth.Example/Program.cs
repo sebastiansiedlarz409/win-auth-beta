@@ -25,7 +25,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
-app.UseWinAuth(typeof(Program).Assembly); //after UseRouting()
+app.UseWinAuth(typeof(Program).Assembly, "/Home/Login", "/Home/Forbidden"); //after UseRouting()
 
 app.MapStaticAssets();
 
