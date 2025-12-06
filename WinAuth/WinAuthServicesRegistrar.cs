@@ -40,14 +40,16 @@ namespace WinAuth
 
             //context wrapper
             services.AddSingleton<WinAuthHttpContextWrapper>();
+            services.AddSingleton<ICredentialValidator, CredentialValidator>();
 
             //register auth manager
             services.AddSingleton(t =>
             {
                 IWinAuthSessionStorage sm = t.GetService<IWinAuthSessionStorage>()!;
+                ICredentialValidator cv = t.GetService<ICredentialValidator>()!;
                 IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>();
                 WinAuthHttpContextWrapper cw = t.GetService<WinAuthHttpContextWrapper>()!;
-                return new WinAuthManager(cw, sm, rp, domainName, sessionLifeTime);
+                return new WinAuthManager(cw, cv, sm, rp, domainName, sessionLifeTime);
             });
         }
 

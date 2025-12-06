@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.DirectoryServices.AccountManagement;
 using System.Security.Claims;
 using WinAuth.Exceptions;
 using WinAuth.Session;
@@ -27,24 +26,32 @@ namespace WinAuth
         private readonly IWinAuthHttpContextWrapper _contextWrapper;
 
         /// <summary>
+        /// Wrapper over ASP.NET Directory Services
+        /// </summary>
+        private readonly ICredentialValidator _credentialValidator;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="sessionManager">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
         public WinAuthManager(IWinAuthHttpContextWrapper contextWrapper,
+                              ICredentialValidator credentialValidator,
                               IWinAuthSessionStorage sessionManager,
                               IWinAuthRoleProvider? roleProvider,
                               string domainName,
                               int liftime)
         {
             _sessionManager = sessionManager;
+            _credentialValidator = credentialValidator;
             _roleProvider = roleProvider;
             _contextWrapper = contextWrapper;
 
             _domainName = domainName;
 
             _sessionLifeTime = liftime;
+            _credentialValidator = credentialValidator;
         }
 
         /// <summary>
@@ -55,11 +62,7 @@ namespace WinAuth
         /// <returns>Valid or not</returns>
         public bool Login(string username, string password)
         {
-            using var context = new PrincipalContext(ContextType.Domain, _domainName);
-
-            var valid = context.ValidateCredentials(username, password);
-
-            return valid;
+            return _credentialValidator.CheckCredential(username, password, _domainName);
         }
 
         /// <summary>
