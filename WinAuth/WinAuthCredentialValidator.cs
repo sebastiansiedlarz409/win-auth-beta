@@ -2,7 +2,7 @@
 
 namespace WinAuth
 {
-    public class CredentialValidator : ICredentialValidator
+    public class WinAuthCredentialValidator : IWinAuthCredentialValidator
     {
         public bool CheckCredential(string username, string password, string domain)
         {

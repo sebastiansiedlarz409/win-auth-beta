@@ -1,6 +1,6 @@
 ﻿namespace WinAuth
 {
-    public interface ICredentialValidator
+    public interface IWinAuthCredentialValidator
     {
         public bool CheckCredential(string username, string password, string domain);
     }
