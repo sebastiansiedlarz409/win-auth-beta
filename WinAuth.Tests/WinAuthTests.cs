@@ -8,7 +8,7 @@ namespace WinAuth.Tests
     public class WinAuthTests
     {
         [Fact]
-        public void CreateSessionTest_BasicScenario()
+        public void CreateSessionTest_CreateSession_CheckReturnedGuid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper
@@ -36,7 +36,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task CreateSessionTest_SaveSessionThrow()
+        public async Task CreateSessionTest_SaveSessionThrow_CheckThrow()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper
@@ -64,7 +64,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task CreateSessionTest_NoUserName()
+        public async Task CreateSessionTest_NoUserNameProvided_CheckThrow()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper
@@ -92,7 +92,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task KillSession_BasicScenario()
+        public async Task KillSession_RemoveSession_CheckNoThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -121,7 +121,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task KillSession_RemoveSessionThrow()
+        public async Task KillSession_RemoveSessionThrow_CheckThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -153,7 +153,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task IsSessionAlive_BasicScenario_ValidSession()
+        public async Task IsSessionAlive_ValidSession_CheckIfValid()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -179,7 +179,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task IsSessionAlive_BasicScenario_NotValidSession()
+        public async Task IsSessionAlive_NotValidSession_CheckIfNotValid()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -205,7 +205,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task IsSessionAlive_BasicScenario_NoCookie()
+        public async Task IsSessionAlive_NoCookieProvided_CheckIfNotValid()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -231,7 +231,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task IsSessionAlive_BasicScenario_CookieWithoutSession()
+        public async Task IsSessionAlive_CookieNoSessionInStorage_CheckIfNotValid()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -257,7 +257,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task IsSessionAlive_GetSessionThrow()
+        public async Task IsSessionAlive_GetSessionThrow_CheckIfThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -288,7 +288,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public void IsAuthenticated_Auhenticated()
+        public void IsAuthenticated_Auhenticated_CheckIfValid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper.Setup(t=>t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(true);
@@ -305,7 +305,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public void IsAuthenticated_NotAuhenticated()
+        public void IsAuthenticated_NotAuhenticated_CheckIfNotValid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper.Setup(t => t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(false);
@@ -322,7 +322,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public void IsAuthenticated_UserName()
+        public void IsAuthenticated_SuccessfullAuth_CheckUserName()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper.Setup(t => t.GetUserName(It.IsAny<HttpContext>())).Returns("testomir.testowski");
@@ -339,7 +339,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task UserRole_BasicScenario()
+        public async Task UserRole_RoleManager_CheckReturnedRole()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -368,7 +368,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task UserRole_BasicScenario_NoProvider()
+        public async Task UserRole_NoProvider_CheckIfThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -394,7 +394,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task UserRole_BasicScenario_ProviderThrow()
+        public async Task UserRole_ProviderThrow_CheckIfThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -429,7 +429,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task HasAccess_BasicScenario()
+        public async Task HasAccess_ValidRole_Permitted()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -458,7 +458,36 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task HasAccess_BasicScenario_NoProvider()
+        public async Task HasAccess_NotValidRole_Denied()
+        {
+            var guid = Guid.NewGuid();
+            var session = new WinAuthSession("testomir.testowski", 30);
+            session.SessionId = guid;
+            session.ExpirationDate = DateTime.UtcNow.AddMinutes(-30);
+
+            var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
+            httpContextWrapper
+                .Setup(t => t.GetCookieValue(It.IsAny<HttpContext>(), "winauth_session_id"))
+                .Returns(guid.ToString());
+
+            var sessionStorage = new Mock<IWinAuthSessionStorage>();
+            sessionStorage
+                .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
+
+            var roleProvider = new Mock<IWinAuthRoleProvider>();
+            roleProvider.Setup(t => t.HasAccessAsync(session, "USER")).Returns(Task.FromResult(false)!);
+
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
+
+            var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
+
+            var permission = await authManager.HasAccessAsync(new DefaultHttpContext(), "USER");
+
+            Assert.False(permission);
+        }
+
+        [Fact]
+        public async Task HasAccess_NoProvider_Permitted()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
@@ -484,7 +513,7 @@ namespace WinAuth.Tests
         }
 
         [Fact]
-        public async Task HasAccess_BasicScenario_ProviderThrow()
+        public async Task HasAccess_ProviderThrow_CheckIfThrow()
         {
             var guid = Guid.NewGuid();
             var session = new WinAuthSession("testomir.testowski", 30);
