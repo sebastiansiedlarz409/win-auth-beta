@@ -25,10 +25,10 @@ namespace WinAuth
             }
 
             //check session lifetime
-            /*if (sessionLifeTime < 5)
+            if (sessionLifeTime < 5)
             {
                 throw new WinAuthSetupException($"Session life time must be greater or equal than 5 minutes...");
-            }*/
+            }
 
             //check if session storage provider has been registered
             if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() == 0)
