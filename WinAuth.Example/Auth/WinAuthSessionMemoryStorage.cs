@@ -14,7 +14,7 @@ namespace WinAuth.Example.Auth
         /// </summary>
         /// <param name="sessionId"></param>
         /// <exception cref="NotImplementedException"></exception>
-        private void CleanupSession()
+        private async Task CleanupSession()
         {
             lock (_lock)
             {
@@ -22,10 +22,10 @@ namespace WinAuth.Example.Auth
             }
         }
 
-        public WinAuthSession? GetSession(Guid sessionId)
+        public async Task<WinAuthSession?> GetSessionAsync(Guid sessionId)
         {
             //remove expired sessions
-            CleanupSession();
+            await CleanupSession();
 
             WinAuthSession? session = null;
             lock (_lock)
@@ -35,7 +35,7 @@ namespace WinAuth.Example.Auth
             return session;
         }
 
-        public void UpdateSession(WinAuthSession session)
+        public async Task UpdateSessionAsync(WinAuthSession session)
         {
             lock (_lock)
             {
@@ -48,7 +48,7 @@ namespace WinAuth.Example.Auth
             }
         }
 
-        public void RemoveSession(WinAuthSession session)
+        public async Task RemoveSessionAsync(WinAuthSession session)
         {
             lock (_lock)
             {
@@ -56,7 +56,7 @@ namespace WinAuth.Example.Auth
             }
         }
 
-        public void StoreSession(WinAuthSession session)
+        public async Task StoreSessionAsync(WinAuthSession session)
         {
             lock(_lock)
             {

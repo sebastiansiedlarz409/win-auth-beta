@@ -31,7 +31,7 @@ namespace WinAuth.Example.Controllers
         {
             if (_authManager.Login(user, pass))
             {
-                _authManager.CreateSession(HttpContext, user);
+                _authManager.CreateSessionAsync(HttpContext, user);
 
                 return RedirectToAction("Page"); //login succeed - go to protected page
             }
@@ -43,7 +43,7 @@ namespace WinAuth.Example.Controllers
         [WinAuthAuthorize]
         public IActionResult Logout()
         {
-            _authManager.KillSession(HttpContext);
+            _authManager.KillSessionAsync(HttpContext);
 
             return RedirectToAction("Index");
         }

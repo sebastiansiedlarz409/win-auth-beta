@@ -7,7 +7,7 @@
         /// </summary>
         /// <param name="session">Session object</param>
         /// <returns>Role name - it will be save as claim</returns>
-        public string? GetRole(WinAuthSession session);
+        Task<string?> GetRoleAsync(WinAuthSession session);
 
         /// <summary>
         /// Check if user's role is enought to get access
@@ -15,6 +15,6 @@
         /// <param name="session">Session object</param>
         /// <param name="role">Role name</param>
         /// <returns>True if user has access</returns>
-        public bool HasAccess(WinAuthSession session, string role);
+        Task<bool> HasAccessAsync(WinAuthSession session, string role);
     }
 }

@@ -11,12 +11,12 @@ namespace WinAuth.Example.Auth
 
     public class WinAuthRoleProvider : IWinAuthRoleProvider
     {
-        public string? GetRole(WinAuthSession session)
+        public Task<string?> GetRoleAsync(WinAuthSession session)
         {
-            return Roles.SUPERADMIN.ToString();
+            return Task.FromResult(Roles.SUPERADMIN.ToString())!;
         }
 
-        public bool HasAccess(WinAuthSession session, string role)
+        public async Task<bool> HasAccessAsync(WinAuthSession session, string role)
         {
             object? targetRole = null;
             if(!Enum.TryParse(typeof(Roles), role.ToString(), out targetRole))
@@ -24,7 +24,7 @@ namespace WinAuth.Example.Auth
                 return false;
             }
 
-            object? ur = GetRole(session);
+            object? ur = await GetRoleAsync(session);
             if(ur is null)
             {
                 return false;

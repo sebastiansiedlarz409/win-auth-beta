@@ -6,7 +6,7 @@
         /// Insert session to storage
         /// </summary>
         /// <param name="session">Session object</param>
-        public void StoreSession(WinAuthSession session);
+        Task StoreSessionAsync(WinAuthSession session);
 
         /// <summary>
         /// Additional method for session updating
@@ -14,19 +14,19 @@
         /// This metods allow user to handle save individually for better performance
         /// </summary>
         /// <param name="session"></param>
-        public void UpdateSession(WinAuthSession session);
+        Task UpdateSessionAsync(WinAuthSession session);
         
         /// <summary>
         /// Retrive session from storage
         /// </summary>
         /// <param name="sessionId">Session Id</param>
         /// <returns>Session object</returns>
-        public WinAuthSession? GetSession(Guid sessionId);
+        Task<WinAuthSession?> GetSessionAsync(Guid sessionId);
 
         /// <summary>
         /// Remove session from storage
         /// </summary>
         /// <param name="session">Session object</param>
-        public void RemoveSession(WinAuthSession session);
+        Task RemoveSessionAsync(WinAuthSession session);
     }
 }

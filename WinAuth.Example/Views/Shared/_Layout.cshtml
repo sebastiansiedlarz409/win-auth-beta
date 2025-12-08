@@ -35,9 +35,9 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
                     <ul class="navbar-nav flex-grow-1 flex-row-reverse">
                         <li class="nav-item">
-                            @if (authManager.UserRole(ViewContext.HttpContext) is { })
+                            @if ((await authManager.UserRole(ViewContext.HttpContext)) is { })
                             {
-                                <button class="btn btn-outline-secondary">@authManager.UserRole(ViewContext.HttpContext)!.ToString()</button>
+                                <button class="btn btn-outline-secondary">@((await authManager.UserRole(ViewContext.HttpContext))!.ToString())</button>
                             }
                             @if (authManager.IsAuthenticated(ViewContext.HttpContext))
                             {

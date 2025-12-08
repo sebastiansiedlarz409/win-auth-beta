@@ -50,7 +50,7 @@ namespace WinAuth.Middleware
 
             //check if session exist
             //if exists checks if its alive as well
-            var validSessionId = _authManager.IsSessionAlive(context);
+            var validSessionId = await _authManager.IsSessionAliveAsync(context);
 
             //get access mode attribute
             var access = GetAccessMode(route);
@@ -82,7 +82,7 @@ namespace WinAuth.Middleware
                 }
                 else
                 {
-                    if (_authManager.HasAccess(context, access.Role))
+                    if (await _authManager.HasAccessAsync(context, access.Role))
                     {
                         await _next(context);
                         return;

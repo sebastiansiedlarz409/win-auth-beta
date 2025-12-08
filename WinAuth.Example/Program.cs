@@ -10,7 +10,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>(); //required
 builder.Services.AddSingleton<IWinAuthRoleProvider, WinAuthRoleProvider>(); //optional
 
-builder.Services.AddWinAuth("domain.local", 1);
+builder.Services.AddWinAuth("domain.local", 60);
 
 var app = builder.Build();
 

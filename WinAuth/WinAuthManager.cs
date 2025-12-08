@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Net;
-using System.Reflection.PortableExecutable;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 using WinAuth.Exceptions;
 using WinAuth.Session;
 
@@ -18,7 +13,7 @@ namespace WinAuth
         /// <summary>
         /// User can implement own session storage base on db, redis, memory or etc
         /// </summary>
-        private readonly IWinAuthSessionStorage _sessionManager;
+        private readonly IWinAuthSessionStorage _sessionStorage;
 
         /// <summary>
         /// User can implement own role storage base on db, redis, memory or etc
@@ -38,17 +33,17 @@ namespace WinAuth
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="sessionManager">Session storage implementation</param>
+        /// <param name="sessionStorage">Session storage implementation</param>
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
         public WinAuthManager(IWinAuthHttpContextWrapper contextWrapper,
                               IWinAuthCredentialValidator credentialValidator,
-                              IWinAuthSessionStorage sessionManager,
+                              IWinAuthSessionStorage sessionStorage,
                               IWinAuthRoleProvider? roleProvider,
                               string domainName,
                               int liftime)
         {
-            _sessionManager = sessionManager;
+            _sessionStorage = sessionStorage;
             _credentialValidator = credentialValidator;
             _roleProvider = roleProvider;
             _contextWrapper = contextWrapper;
@@ -77,7 +72,7 @@ namespace WinAuth
         /// <param name="userName">Username</param>
         /// <returns>Session Id as Guid</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
-        public Guid? CreateSession(HttpContext httpContext, string userName)
+        public async Task<Guid?> CreateSessionAsync(HttpContext httpContext, string userName)
         {
             if (string.IsNullOrEmpty(userName))
             {
@@ -89,7 +84,7 @@ namespace WinAuth
 
             try
             {
-                _sessionManager.StoreSession(session);
+                await _sessionStorage.StoreSessionAsync(session);
             }
             catch (Exception ex)
             {
@@ -107,16 +102,16 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP Context Object</param>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
-        public void KillSession(HttpContext httpContext)
+        public async Task KillSessionAsync(HttpContext httpContext)
         {
-            var session = GetSessionFromContext(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
 
             //if session exist inside session storage remove it
             if (session is { })
             {
                 try
                 {
-                    _sessionManager.RemoveSession(session);
+                    await _sessionStorage.RemoveSessionAsync(session);
                 }
                 catch (Exception ex)
                 {
@@ -132,9 +127,9 @@ namespace WinAuth
         /// <param name="httpContext">HTTP Context Object</param>
         /// <returns>Valid session</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage or IWinAuthRoleProvider fail</exception>
-        public bool IsSessionAlive(HttpContext httpContext)
+        public async Task<bool> IsSessionAliveAsync(HttpContext httpContext)
         {
-            var session = GetSessionFromContext(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
 
             if (session is null)
             {
@@ -156,7 +151,7 @@ namespace WinAuth
                     string? role = null;
                     try
                     {
-                        role = _roleProvider.GetRole(session);
+                        role = await _roleProvider.GetRoleAsync(session);
                     }
                     catch(Exception ex)
                     {
@@ -182,7 +177,7 @@ namespace WinAuth
 
                     try
                     {
-                        _sessionManager.UpdateSession(session);
+                        await _sessionStorage.UpdateSessionAsync(session);
                     }
                     catch (Exception ex)
                     {
@@ -221,7 +216,7 @@ namespace WinAuth
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Role name</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
-        public object? UserRole(HttpContext httpContext)
+        public async Task<object?> UserRole(HttpContext httpContext)
         {
             //if there is no role system
             //every logged user has access to everything
@@ -230,7 +225,7 @@ namespace WinAuth
                 return null;
             }
 
-            var session = GetSessionFromContext(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
 
             if (session is not { })
             {
@@ -239,7 +234,7 @@ namespace WinAuth
 
             try
             {
-                return _roleProvider.GetRole(session);
+                return await _roleProvider.GetRoleAsync(session);
             }
             catch (Exception ex)
             {
@@ -255,7 +250,7 @@ namespace WinAuth
         /// <param name="role">Minimal role for access</param>
         /// <returns>True if access is permitted</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
-        public bool HasAccess(HttpContext httpContext, string role)
+        public async Task<bool> HasAccessAsync(HttpContext httpContext, string role)
         {
             //if there is no role system
             //every logged user has access to everything
@@ -264,7 +259,7 @@ namespace WinAuth
                 return true;
             }
 
-            var session = GetSessionFromContext(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
 
             if (session is not { })
             {
@@ -273,11 +268,11 @@ namespace WinAuth
 
             try
             {
-                return _roleProvider.HasAccess(session, role);
+                return await _roleProvider.HasAccessAsync(session, role);
             }
             catch (Exception ex)
             {
-                throw new WinAuthExecutionException($"Hash access procedure failed! Check inner exception!", ex);
+                throw new WinAuthExecutionException($"Has access procedure failed! Check inner exception!", ex);
             }
         }
 
@@ -287,7 +282,7 @@ namespace WinAuth
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Sesson object</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
-        private WinAuthSession? GetSessionFromContext(HttpContext httpContext)
+        private async Task<WinAuthSession?> GetSessionFromContextAsync(HttpContext httpContext)
         {
             //session id
             var sessionId = _contextWrapper.GetCookieValue(httpContext, "winauth_session_id");
@@ -302,7 +297,7 @@ namespace WinAuth
             WinAuthSession? session = null;
             try
             {
-                session = _sessionManager.GetSession(sid);
+                session = await _sessionStorage.GetSessionAsync(sid);
             }
             catch (Exception ex)
             {
