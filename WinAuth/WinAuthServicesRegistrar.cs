@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using WinAuth.Attributes;
 using WinAuth.Exceptions;
 using WinAuth.Middleware;
 using WinAuth.Session;
@@ -27,10 +25,10 @@ namespace WinAuth
             }
 
             //check session lifetime
-            if (sessionLifeTime < 5)
+            /*if (sessionLifeTime < 5)
             {
                 throw new WinAuthSetupException($"Session life time must be greater or equal than 5 minutes...");
-            }
+            }*/
 
             //check if session storage provider has been registered
             if (services.Where(s => s.ServiceType == typeof(IWinAuthSessionStorage)).Count() == 0)
@@ -40,13 +38,13 @@ namespace WinAuth
 
             //context wrapper
             services.AddSingleton<WinAuthHttpContextWrapper>();
-            services.AddSingleton<ICredentialValidator, CredentialValidator>();
+            services.AddSingleton<IWinAuthCredentialValidator, WinAuthCredentialValidator>();
 
             //register auth manager
             services.AddSingleton(t =>
             {
                 IWinAuthSessionStorage sm = t.GetService<IWinAuthSessionStorage>()!;
-                ICredentialValidator cv = t.GetService<ICredentialValidator>()!;
+                IWinAuthCredentialValidator cv = t.GetService<IWinAuthCredentialValidator>()!;
                 IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>();
                 WinAuthHttpContextWrapper cw = t.GetService<WinAuthHttpContextWrapper>()!;
                 return new WinAuthManager(cw, cv, sm, rp, domainName, sessionLifeTime);
@@ -57,20 +55,20 @@ namespace WinAuth
         /// Add middlware to pipeline
         /// </summary>
         /// <param name="assembly">MVC assembly</param>
-        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginRoute, string forbiddenRoute)
+        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginPath, string forbiddenPath)
         {
-            if (string.IsNullOrEmpty(loginRoute))
+            if (string.IsNullOrEmpty(loginPath))
             {
                 throw new WinAuthSetupException($"Invalid login route name...");
             }
 
-            if (string.IsNullOrEmpty(forbiddenRoute))
+            if (string.IsNullOrEmpty(forbiddenPath))
             {
                 throw new WinAuthSetupException($"Invalid forbidden route name...");
             }
 
             //add middleware to pipe line
-            app.UseMiddleware<WinAuthMiddleware>(assembly, loginRoute, forbiddenRoute);
+            app.UseMiddleware<WinAuthMiddleware>(assembly, loginPath, forbiddenPath);
         }
     }
 }

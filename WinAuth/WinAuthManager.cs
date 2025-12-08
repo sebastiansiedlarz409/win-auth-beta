@@ -1,5 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Net;
+using System.Reflection.PortableExecutable;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using WinAuth.Exceptions;
 using WinAuth.Session;
 
@@ -28,7 +33,7 @@ namespace WinAuth
         /// <summary>
         /// Wrapper over ASP.NET Directory Services
         /// </summary>
-        private readonly ICredentialValidator _credentialValidator;
+        private readonly IWinAuthCredentialValidator _credentialValidator;
 
         /// <summary>
         /// Constructor
@@ -37,7 +42,7 @@ namespace WinAuth
         /// <param name="domainName">Target domain name</param>
         /// <param name="liftime">Session life time in minutes</param>
         public WinAuthManager(IWinAuthHttpContextWrapper contextWrapper,
-                              ICredentialValidator credentialValidator,
+                              IWinAuthCredentialValidator credentialValidator,
                               IWinAuthSessionStorage sessionManager,
                               IWinAuthRoleProvider? roleProvider,
                               string domainName,

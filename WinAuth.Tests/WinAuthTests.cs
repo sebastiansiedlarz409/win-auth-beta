@@ -25,7 +25,7 @@ namespace WinAuth.Tests
 
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var httpContext = new DefaultHttpContext();
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
@@ -53,7 +53,7 @@ namespace WinAuth.Tests
                     throw new Exception();
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -81,7 +81,7 @@ namespace WinAuth.Tests
 
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -113,7 +113,7 @@ namespace WinAuth.Tests
 
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -142,7 +142,7 @@ namespace WinAuth.Tests
                     throw new Exception();
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -169,7 +169,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns(session);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -195,7 +195,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns(session);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -221,7 +221,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns(session);
             
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -247,7 +247,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns((WinAuthSession?)null);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -277,7 +277,7 @@ namespace WinAuth.Tests
                     throw new Exception();
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -295,7 +295,7 @@ namespace WinAuth.Tests
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -312,7 +312,7 @@ namespace WinAuth.Tests
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -329,7 +329,7 @@ namespace WinAuth.Tests
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -358,7 +358,7 @@ namespace WinAuth.Tests
             var roleProvider = new Mock<IWinAuthRoleProvider>();
             roleProvider.Setup(t => t.GetRole(session)).Returns("ADMIN");
             
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
 
@@ -384,7 +384,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns(session);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -418,7 +418,7 @@ namespace WinAuth.Tests
                     throw new Exception();
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
 
@@ -448,7 +448,7 @@ namespace WinAuth.Tests
             var roleProvider = new Mock<IWinAuthRoleProvider>();
             roleProvider.Setup(t => t.HasAccess(session, "USER")).Returns(true);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
 
@@ -474,7 +474,7 @@ namespace WinAuth.Tests
             sessionStorage
                 .Setup(t => t.GetSession(guid)).Returns(session);
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
@@ -509,7 +509,7 @@ namespace WinAuth.Tests
                     throw new Exception();
                 });
 
-            var credentialValidator = new Mock<ICredentialValidator>();
+            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
 

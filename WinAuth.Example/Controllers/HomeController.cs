@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using WinAuth.Attributes;
-using WinAuth.Example.Auth;
 
 namespace WinAuth.Example.Controllers
 {
@@ -33,6 +32,7 @@ namespace WinAuth.Example.Controllers
             if (_authManager.Login(user, pass))
             {
                 _authManager.CreateSession(HttpContext, user);
+
                 return RedirectToAction("Page"); //login succeed - go to protected page
             }
 
@@ -59,6 +59,15 @@ namespace WinAuth.Example.Controllers
         [WinAuthAuthorize("ADMIN")]
         public IActionResult Admin()
         {
+            return View();
+        }
+
+        [WinAuthAuthorize("ADMIN")]
+        [HttpPost]
+        public IActionResult Admin(string name)
+        {
+            ViewBag.Name = name;
+
             return View();
         }
 

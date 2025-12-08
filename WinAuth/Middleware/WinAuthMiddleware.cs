@@ -13,18 +13,18 @@ namespace WinAuth.Middleware
         private readonly WinAuthManager _authManager;
         private readonly Assembly _assembly;
 
-        private string _loginRoute;
-        private string _forbiddenRoute;
+        private string _loginPath;
+        private string _forbiddenPath;
 
-        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly, string loginRoute, string forbiddenRoute)
+        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly, string loginPath, string forbiddenPath)
         {
             _next = next;
 
             _authManager = authManager;
             _assembly = assembly;
 
-            _loginRoute = loginRoute;
-            _forbiddenRoute = forbiddenRoute;
+            _loginPath = loginPath;
+            _forbiddenPath = forbiddenPath;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -43,7 +43,7 @@ namespace WinAuth.Middleware
             //if there is no route
             //route middleware wasnt registered before this middleware
             //skip auth validation
-            if(route.Values.Count == 0)
+            if (route.Values.Count == 0)
             {
                 throw new WinAuthExecutionException("Missing route configuration!");
             }
@@ -64,7 +64,11 @@ namespace WinAuth.Middleware
             //redirect to login
             if (!validSessionId)
             {
-                context.Response.Redirect(_loginRoute, false);
+                if (context.Request.Method == "GET")
+                    context.Response.Redirect(_loginPath, false);
+                else
+                    context.Response.StatusCode = 401;
+
                 return;
             }
             //client pass session id
@@ -85,7 +89,11 @@ namespace WinAuth.Middleware
                     }
                     else
                     {
-                        context.Response.Redirect(_forbiddenRoute, false);
+                        if (context.Request.Method == "GET")
+                            context.Response.Redirect(_forbiddenPath, false);
+                        else
+                            context.Response.StatusCode = 403;
+
                         return;
                     }
                 }
