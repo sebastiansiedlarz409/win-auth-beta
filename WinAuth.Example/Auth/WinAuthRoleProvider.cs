@@ -13,7 +13,7 @@ namespace WinAuth.Example.Auth
     {
         public Task<string?> GetRoleAsync(WinAuthSession session)
         {
-            return Task.FromResult(Roles.SUPERADMIN.ToString())!;
+            return Task.FromResult(Roles.USER.ToString())!;
         }
 
         public async Task<bool> HasAccessAsync(WinAuthSession session, string role)

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace WinAuth
+namespace WinAuth.Wrappers
 {
     public class WinAuthHttpContextWrapper : IWinAuthHttpContextWrapper
     {

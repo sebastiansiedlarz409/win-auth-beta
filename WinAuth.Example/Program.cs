@@ -9,6 +9,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton<IWinAuthSessionStorage, WinAuthSessionMemoryStorage>(); //required
 builder.Services.AddSingleton<IWinAuthRoleProvider, WinAuthRoleProvider>(); //optional
+builder.Services.AddSingleton<IWinAuthAccessDeniedHandler, WinAuthAccessDeniedHandler>(); //optional
 
 builder.Services.AddWinAuth("domain.local", 60);
 
@@ -25,7 +26,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
-app.UseWinAuth(typeof(Program).Assembly, "/Home/Login", "/Home/Forbidden"); //after UseRouting()
+app.UseWinAuth(typeof(Program).Assembly); //after UseRouting()
 
 app.MapStaticAssets();
 

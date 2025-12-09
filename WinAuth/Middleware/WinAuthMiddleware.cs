@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Routing;
 using System.Reflection;
 using WinAuth.Attributes;
 using WinAuth.Exceptions;
+using WinAuth.Session;
 
 namespace WinAuth.Middleware
 {
@@ -11,20 +12,21 @@ namespace WinAuth.Middleware
         private readonly RequestDelegate _next;
 
         private readonly WinAuthManager _authManager;
+        private readonly IWinAuthAccessDeniedHandler? _accessDeniedHandler;
+
         private readonly Assembly _assembly;
 
-        private string _loginPath;
-        private string _forbiddenPath;
-
-        public WinAuthMiddleware(RequestDelegate next, WinAuthManager authManager, Assembly assembly, string loginPath, string forbiddenPath)
+        public WinAuthMiddleware(RequestDelegate next,
+                                 WinAuthManager authManager,
+                                 Assembly assembly,
+                                 IWinAuthAccessDeniedHandler? accessDeniedHandler = null)
         {
             _next = next;
 
             _authManager = authManager;
-            _assembly = assembly;
+            _accessDeniedHandler = accessDeniedHandler;
 
-            _loginPath = loginPath;
-            _forbiddenPath = forbiddenPath;
+            _assembly = assembly;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -64,8 +66,10 @@ namespace WinAuth.Middleware
             //redirect to login
             if (!validSessionId)
             {
-                if (context.Request.Method == "GET")
-                    context.Response.Redirect(_loginPath, false);
+                if(_accessDeniedHandler is { })
+                {
+                    await _accessDeniedHandler.OnSessionExpired(context);
+                }
                 else
                     context.Response.StatusCode = 401;
 
@@ -89,8 +93,10 @@ namespace WinAuth.Middleware
                     }
                     else
                     {
-                        if (context.Request.Method == "GET")
-                            context.Response.Redirect(_forbiddenPath, false);
+                        if(_accessDeniedHandler is { })
+                        {
+                            await _accessDeniedHandler.OnRoleNotHighEnough(context);
+                        }
                         else
                             context.Response.StatusCode = 403;
 

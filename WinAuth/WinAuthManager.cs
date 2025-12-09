@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using WinAuth.Wrappers;
 using WinAuth.Exceptions;
 using WinAuth.Session;
 

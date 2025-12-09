@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using WinAuth.Wrappers;
 using WinAuth.Exceptions;
 using WinAuth.Middleware;
 using WinAuth.Session;
@@ -43,10 +44,11 @@ namespace WinAuth
             //register auth manager
             services.AddSingleton(t =>
             {
-                IWinAuthSessionStorage sm = t.GetService<IWinAuthSessionStorage>()!;
-                IWinAuthCredentialValidator cv = t.GetService<IWinAuthCredentialValidator>()!;
+                IWinAuthSessionStorage sm = t.GetRequiredService<IWinAuthSessionStorage>()!;
+                IWinAuthCredentialValidator cv = t.GetRequiredService<IWinAuthCredentialValidator>()!;
+                WinAuthHttpContextWrapper cw = t.GetRequiredService<WinAuthHttpContextWrapper>()!;
                 IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>();
-                WinAuthHttpContextWrapper cw = t.GetService<WinAuthHttpContextWrapper>()!;
+
                 return new WinAuthManager(cw, cv, sm, rp, domainName, sessionLifeTime);
             });
         }
@@ -55,20 +57,10 @@ namespace WinAuth
         /// Add middlware to pipeline
         /// </summary>
         /// <param name="assembly">MVC assembly</param>
-        public static void UseWinAuth(this WebApplication app, Assembly assembly, string loginPath, string forbiddenPath)
+        public static void UseWinAuth(this WebApplication app, Assembly assembly)
         {
-            if (string.IsNullOrEmpty(loginPath))
-            {
-                throw new WinAuthSetupException($"Invalid login route name...");
-            }
-
-            if (string.IsNullOrEmpty(forbiddenPath))
-            {
-                throw new WinAuthSetupException($"Invalid forbidden route name...");
-            }
-
             //add middleware to pipe line
-            app.UseMiddleware<WinAuthMiddleware>(assembly, loginPath, forbiddenPath);
+            app.UseMiddleware<WinAuthMiddleware>(assembly);
         }
     }
 }
