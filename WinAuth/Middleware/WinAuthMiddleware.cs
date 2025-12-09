@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Reflection;
 using WinAuth.Attributes;
 using WinAuth.Exceptions;
@@ -11,19 +13,18 @@ namespace WinAuth.Middleware
     {
         private readonly RequestDelegate _next;
 
-        private readonly WinAuthManager _authManager;
         private readonly IWinAuthAccessDeniedHandler? _accessDeniedHandler;
 
         private readonly Assembly _assembly;
 
+        private WinAuthManager? _authManager;
+
         public WinAuthMiddleware(RequestDelegate next,
-                                 WinAuthManager authManager,
                                  Assembly assembly,
                                  IWinAuthAccessDeniedHandler? accessDeniedHandler = null)
         {
             _next = next;
 
-            _authManager = authManager;
             _accessDeniedHandler = accessDeniedHandler;
 
             _assembly = assembly;
@@ -31,6 +32,8 @@ namespace WinAuth.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            _authManager = context.RequestServices.GetRequiredService<WinAuthManager>();
+
             //skip non-mvc requests
             var endpoint = context.GetEndpoint();
             if (endpoint == null || endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>() == null)

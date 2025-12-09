@@ -42,7 +42,7 @@ namespace WinAuth
             services.AddSingleton<IWinAuthCredentialValidator, WinAuthCredentialValidator>();
 
             //register auth manager
-            services.AddSingleton(t =>
+            services.AddScoped(t =>
             {
                 IWinAuthSessionStorage sm = t.GetRequiredService<IWinAuthSessionStorage>()!;
                 IWinAuthCredentialValidator cv = t.GetRequiredService<IWinAuthCredentialValidator>()!;
