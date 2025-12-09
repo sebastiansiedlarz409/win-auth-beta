@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using WinAuth.Attributes;
 
 namespace WinAuth.Example.Controllers
@@ -21,17 +22,25 @@ namespace WinAuth.Example.Controllers
 
         //login page
         //winauth redirect here when use try to access nonpublic page without valid session
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
+            if((await _authManager.IsSessionAliveAsync(HttpContext)))
+            {
+                return RedirectToAction("Page");
+            }
             return View();
         }
 
         [HttpPost]
-        public IActionResult LoginUser(string user, string pass)
+        public async Task<IActionResult> LoginUser(string user, string pass)
         {
+            if ((await _authManager.IsSessionAliveAsync(HttpContext)))
+            {
+                return RedirectToAction("Page");
+            }
             if (_authManager.Login(user, pass))
             {
-                _authManager.CreateSessionAsync(HttpContext, user);
+                await _authManager.CreateSessionAsync(HttpContext, user);
 
                 return RedirectToAction("Page"); //login succeed - go to protected page
             }
@@ -41,9 +50,9 @@ namespace WinAuth.Example.Controllers
 
         //clear session
         [WinAuthAuthorize]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            _authManager.KillSessionAsync(HttpContext);
+            await _authManager.KillSessionAsync(HttpContext);
 
             return RedirectToAction("Index");
         }

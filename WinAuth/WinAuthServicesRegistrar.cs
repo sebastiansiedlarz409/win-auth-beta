@@ -38,7 +38,7 @@ namespace WinAuth
             }
 
             //context wrapper
-            services.AddSingleton<WinAuthHttpContextWrapper>();
+            services.AddSingleton<IWinAuthHttpContextWrapper, WinAuthHttpContextWrapper>();
             services.AddSingleton<IWinAuthCredentialValidator, WinAuthCredentialValidator>();
 
             //register auth manager
@@ -46,7 +46,7 @@ namespace WinAuth
             {
                 IWinAuthSessionStorage sm = t.GetRequiredService<IWinAuthSessionStorage>()!;
                 IWinAuthCredentialValidator cv = t.GetRequiredService<IWinAuthCredentialValidator>()!;
-                WinAuthHttpContextWrapper cw = t.GetRequiredService<WinAuthHttpContextWrapper>()!;
+                IWinAuthHttpContextWrapper cw = t.GetRequiredService<IWinAuthHttpContextWrapper>()!;
                 IWinAuthRoleProvider? rp = t.GetService<IWinAuthRoleProvider>();
 
                 return new WinAuthManager(cw, cv, sm, rp, domainName, sessionLifeTime);

@@ -4,7 +4,7 @@ using WinAuth.Wrappers;
 using WinAuth.Exceptions;
 using WinAuth.Session;
 
-namespace WinAuth.Tests
+namespace WinAuth.Tests.Unit
 {
     public class WinAuthTests
     {
