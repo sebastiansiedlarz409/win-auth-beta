@@ -1,5 +1,6 @@
 ﻿namespace WinAuth.Attributes
 {
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public class WinAuthAuthorizeAttribute : Attribute
     {
         public string? Role {  get; private set; }
