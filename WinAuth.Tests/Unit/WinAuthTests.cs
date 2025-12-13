@@ -287,27 +287,35 @@ namespace WinAuth.Tests.Unit
         }
 
         [Fact]
-        public void IsAuthenticated_Authenticated_CheckIfValid()
+        public async Task IsAuthenticated_Authenticated_CheckIfValid()
         {
+            var guid = Guid.NewGuid();
+            var session = new WinAuthSession("testomir.testowski", 30);
+            session.SessionId = guid;
+            session.ExpirationDate = DateTime.UtcNow.AddMinutes(30);
+
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
-            httpContextWrapper.Setup(t=>t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(true);
+            httpContextWrapper
+                .Setup(t => t.GetCookieValue(It.IsAny<HttpContext>(), "winauth_session_id"))
+                .Returns(guid.ToString());
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
+            sessionStorage
+                .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
 
             var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
-            bool valid = authManager.IsAuthenticated(new DefaultHttpContext());
+            bool valid = await authManager.IsAuthenticated(new DefaultHttpContext());
 
             Assert.True(valid);
         }
 
         [Fact]
-        public void IsAuthenticated_NotAuthenticated_CheckIfNotValid()
+        public async Task IsAuthenticated_NotAuthenticated_CheckIfNotValid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
-            httpContextWrapper.Setup(t => t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(false);
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
 
@@ -315,24 +323,33 @@ namespace WinAuth.Tests.Unit
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
-            bool valid = authManager.IsAuthenticated(new DefaultHttpContext());
+            bool valid = await authManager.IsAuthenticated(new DefaultHttpContext());
 
             Assert.False(valid);
         }
 
         [Fact]
-        public void IsAuthenticated_SuccessfullAuth_CheckUserName()
+        public async Task IsAuthenticated_SuccessfullAuth_CheckUserName()
         {
+            var guid = Guid.NewGuid();
+            var session = new WinAuthSession("testomir.testowski", 30);
+            session.SessionId = guid;
+            session.ExpirationDate = DateTime.UtcNow.AddMinutes(30);
+
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
-            httpContextWrapper.Setup(t => t.GetUserName(It.IsAny<HttpContext>())).Returns("testomir.testowski");
+            httpContextWrapper
+                .Setup(t => t.GetCookieValue(It.IsAny<HttpContext>(), "winauth_session_id"))
+                .Returns(guid.ToString());
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
+            sessionStorage
+                .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
 
             var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
-            var username = authManager.GetUserName(new DefaultHttpContext());
+            var username = await authManager.GetUserName(new DefaultHttpContext());
 
             Assert.Equal("testomir.testowski", username);
         }

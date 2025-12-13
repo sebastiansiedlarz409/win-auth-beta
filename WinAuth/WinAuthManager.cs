@@ -183,9 +183,13 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>True if user is logged in</returns>
-        public bool IsAuthenticated(HttpContext httpContext)
+        public async Task<bool> IsAuthenticated(HttpContext httpContext)
         {
-            return _contextWrapper.IsAuthenticated(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
+
+            if (session is null) return false;
+
+            return session.ExpirationDate >= DateTime.UtcNow;
         }
 
         /// <summary>
@@ -193,9 +197,11 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Username or null</returns>
-        public string? GetUserName(HttpContext httpContext)
+        public async Task<string?> GetUserName(HttpContext httpContext)
         {
-            return _contextWrapper.GetUserName(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext);
+
+            return session?.UserName;
         }
 
         /// <summary>
