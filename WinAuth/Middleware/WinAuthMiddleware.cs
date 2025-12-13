@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Reflection;
 using WinAuth.Attributes;
 using WinAuth.Exceptions;
@@ -32,8 +31,6 @@ namespace WinAuth.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            _authManager = context.RequestServices.GetRequiredService<WinAuthManager>();
-
             //skip non-mvc requests
             var endpoint = context.GetEndpoint();
             if (endpoint == null || endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>() == null)
@@ -53,6 +50,9 @@ namespace WinAuth.Middleware
                 throw new WinAuthExecutionException("Missing route configuration!");
             }
 
+            //get auth manager
+            _authManager = context.RequestServices.GetRequiredService<WinAuthManager>();
+
             //check if session exist
             //if exists checks if its alive as well
             var validSessionId = await _authManager.IsSessionAliveAsync(context);
@@ -65,13 +65,31 @@ namespace WinAuth.Middleware
                 return;
             }
 
+            //require unauthenticated
+            if (!access.Auth)
+            {
+                if (!validSessionId)
+                {
+                    await _next(context);
+                    return;
+                }
+                else
+                {
+                    if(_accessDeniedHandler is { })
+                    {
+                        await _accessDeniedHandler.RequireUnAuthenticated(context);
+                        return;
+                    }
+                }
+            }
+
             //client does not pass valid session id
             //redirect to login
             if (!validSessionId)
             {
                 if(_accessDeniedHandler is { })
                 {
-                    await _accessDeniedHandler.OnSessionExpired(context);
+                    await _accessDeniedHandler.RequireAuthenticated(context);
                 }
                 else
                     context.Response.StatusCode = 401;
@@ -98,7 +116,8 @@ namespace WinAuth.Middleware
                     {
                         if(_accessDeniedHandler is { })
                         {
-                            await _accessDeniedHandler.OnRoleNotHighEnough(context);
+                            var userRole = await _authManager.UserRole(context);
+                            await _accessDeniedHandler.RequireRole(context, userRole?.ToString(), access.Role);
                         }
                         else
                             context.Response.StatusCode = 403;

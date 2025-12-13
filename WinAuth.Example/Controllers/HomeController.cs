@@ -22,22 +22,16 @@ namespace WinAuth.Example.Controllers
 
         //login page
         //winauth redirect here when use try to access nonpublic page without valid session
+        [WinAuthAuthorize(false)]
         public async Task<IActionResult> Login()
         {
-            if((await _authManager.IsSessionAliveAsync(HttpContext)))
-            {
-                return RedirectToAction("Page");
-            }
             return View();
         }
 
         [HttpPost]
+        [WinAuthAuthorize(false)]
         public async Task<IActionResult> LoginUser(string user, string pass)
         {
-            if ((await _authManager.IsSessionAliveAsync(HttpContext)))
-            {
-                return RedirectToAction("Page");
-            }
             if (_authManager.Login(user, pass))
             {
                 await _authManager.CreateSessionAsync(HttpContext, user);
@@ -65,13 +59,13 @@ namespace WinAuth.Example.Controllers
         }
 
         //admin page
-        [WinAuthAuthorize("ADMIN")]
+        [WinAuthAuthorize(true, "ADMIN")]
         public IActionResult Admin()
         {
             return View();
         }
 
-        [WinAuthAuthorize("ADMIN")]
+        [WinAuthAuthorize(true, "ADMIN")]
         [HttpPost]
         public IActionResult Admin(string name)
         {

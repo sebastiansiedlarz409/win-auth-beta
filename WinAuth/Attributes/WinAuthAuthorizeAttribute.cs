@@ -4,9 +4,12 @@
     {
         public string? Role {  get; private set; }
 
-        public WinAuthAuthorizeAttribute(string? role = null)
+        public bool Auth {  get; private set; }
+
+        public WinAuthAuthorizeAttribute(bool auth = true, string? role = null)
         {
             Role = role;
+            Auth = auth;
         }
     }
 }

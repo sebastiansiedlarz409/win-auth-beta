@@ -110,5 +110,47 @@ namespace WinAuth.Tests.Integration
 
             Assert.Equal("/Home/Page", location!.First());
         }
+
+        [Fact]
+        public async Task KillSession_Logout_AccessToAuthPageRedirectToLogin()
+        {
+            var factory = new TestAppFactory();
+            var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+
+            var message = new FormUrlEncodedContent(new Dictionary<string, string>()
+            {
+                {"user", "test" },
+                {"pass", "test" }
+            });
+
+            //login
+            var request = new HttpRequestMessage(HttpMethod.Post, "/Home/LoginUser")
+            {
+                Content = message
+            };
+            var response = await client.SendAsync(request);
+
+            response.Headers.TryGetValues("Set-Cookie", out var cookies);
+            var cookie = cookies!
+                        .Select(c => SetCookieHeaderValue.Parse(c))
+                        .FirstOrDefault(c => c.Name == "winauth_session_id");
+            
+            Assert.NotNull(cookie);
+
+            //logout
+            request = new HttpRequestMessage(HttpMethod.Post, "/Home/Logout");
+            request.Headers.Add("Cookie", $"{cookie!.ToString};");
+            response = await client.SendAsync(request);
+
+            //test redirect to login
+            response = await client.GetAsync("/Home/Page");
+
+            response.Headers.TryGetValues("Location", out var location);
+
+            Assert.Equal("/Home/Login", location!.First());
+        }
     }
 }

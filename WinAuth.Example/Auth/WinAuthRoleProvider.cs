@@ -13,7 +13,18 @@ namespace WinAuth.Example.Auth
     {
         public Task<string?> GetRoleAsync(WinAuthSession session)
         {
-            return Task.FromResult(Roles.USER.ToString())!;
+            if (session.UserName.StartsWith("admin"))
+            {
+                return Task.FromResult(Roles.ADMIN.ToString())!;
+            }
+            else if (session.UserName.StartsWith("user"))
+            {
+                return Task.FromResult(Roles.USER.ToString())!;
+            }
+            else
+            {
+                return Task.FromResult((string?)null);
+            }
         }
 
         public async Task<bool> HasAccessAsync(WinAuthSession session, string role)
