@@ -2,7 +2,7 @@
 
 namespace WinAuth.Wrappers
 {
-    public class WinAuthHttpContextWrapper : IWinAuthHttpContextWrapper
+    internal class WinAuthHttpContextWrapper : IWinAuthHttpContextWrapper
     {
         public bool IsAuthenticated(HttpContext httpContext)
         {

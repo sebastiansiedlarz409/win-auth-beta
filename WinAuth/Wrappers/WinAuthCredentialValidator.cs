@@ -2,13 +2,13 @@
 
 namespace WinAuth.Wrappers
 {
-    public class WinAuthCredentialValidator : IWinAuthCredentialValidator
+    internal sealed class WinAuthCredentialValidator : IWinAuthCredentialValidator
     {
         public bool CheckCredential(string username, string password, string domain)
         {
-            //using var context = new PrincipalContext(ContextType.Domain, domain);
+            using var context = new PrincipalContext(ContextType.Domain, domain);
 
-            return true;// context.ValidateCredentials(username, password);
+            return context.ValidateCredentials(username, password);
         }
     }
 }

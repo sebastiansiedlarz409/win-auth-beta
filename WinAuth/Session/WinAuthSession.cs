@@ -2,9 +2,9 @@
 {
     public class WinAuthSession
     {
-        public Guid SessionId { get; private set; }
+        public Guid SessionId { get; internal set; }
 
-        public DateTime ExpirationDate { get; internal set; }
+        public DateTime ExpirationDate { get; set; }
 
         public string UserName { get; internal set; }
 

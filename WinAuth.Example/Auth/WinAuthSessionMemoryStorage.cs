@@ -42,7 +42,6 @@ namespace WinAuth.Example.Auth
             if (updateSession is { })
             {
                 updateSession.ExpirationDate = session.ExpirationDate;
-                updateSession.UserName = session.UserName;
             }
             _semaphore.Release();
         }

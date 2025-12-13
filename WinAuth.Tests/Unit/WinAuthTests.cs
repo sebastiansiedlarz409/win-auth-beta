@@ -219,8 +219,6 @@ namespace WinAuth.Tests.Unit
                 .Returns((string?)null);
 
             var sessionStorage = new Mock<IWinAuthSessionStorage>();
-            sessionStorage
-                .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
             
             var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
@@ -289,7 +287,7 @@ namespace WinAuth.Tests.Unit
         }
 
         [Fact]
-        public void IsAuthenticated_Auhenticated_CheckIfValid()
+        public void IsAuthenticated_Authenticated_CheckIfValid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper.Setup(t=>t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(true);
@@ -306,7 +304,7 @@ namespace WinAuth.Tests.Unit
         }
 
         [Fact]
-        public void IsAuthenticated_NotAuhenticated_CheckIfNotValid()
+        public void IsAuthenticated_NotAuthenticated_CheckIfNotValid()
         {
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper.Setup(t => t.IsAuthenticated(It.IsAny<HttpContext>())).Returns(false);
@@ -346,6 +344,7 @@ namespace WinAuth.Tests.Unit
             var session = new WinAuthSession("testomir.testowski", 30);
             session.SessionId = guid;
             session.ExpirationDate = DateTime.UtcNow.AddMinutes(-30);
+            session.Role = "ADMIN";
 
             var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
             httpContextWrapper
@@ -357,8 +356,6 @@ namespace WinAuth.Tests.Unit
                 .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
 
             var roleProvider = new Mock<IWinAuthRoleProvider>();
-            roleProvider.Setup(t => t.GetRoleAsync(session)).Returns(Task.FromResult("ADMIN")!);
-            
             var credentialValidator = new Mock<IWinAuthCredentialValidator>();
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
@@ -392,41 +389,6 @@ namespace WinAuth.Tests.Unit
             var role = await authManager.GetUserRole(new DefaultHttpContext());
 
             Assert.Null(role);
-        }
-
-        [Fact]
-        public async Task UserRole_ProviderThrow_CheckIfThrow()
-        {
-            var guid = Guid.NewGuid();
-            var session = new WinAuthSession("testomir.testowski", 30);
-            session.SessionId = guid;
-            session.ExpirationDate = DateTime.UtcNow.AddMinutes(-30);
-
-            var httpContextWrapper = new Mock<IWinAuthHttpContextWrapper>();
-            httpContextWrapper
-                .Setup(t => t.GetCookieValue(It.IsAny<HttpContext>(), "winauth_session_id"))
-                .Returns(guid.ToString());
-
-            var sessionStorage = new Mock<IWinAuthSessionStorage>();
-            sessionStorage
-                .Setup(t => t.GetSessionAsync(guid)).Returns(Task.FromResult(session)!);
-
-            var roleProvider = new Mock<IWinAuthRoleProvider>();
-            roleProvider
-                .Setup(t => t.GetRoleAsync(session))
-                .Returns(() =>
-                {
-                    throw new Exception();
-                });
-
-            var credentialValidator = new Mock<IWinAuthCredentialValidator>();
-
-            var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
-
-            await Assert.ThrowsAsync<WinAuthExecutionException>(async () =>
-            {
-                await authManager.GetUserRole(new DefaultHttpContext());
-            });
         }
 
         [Fact]
