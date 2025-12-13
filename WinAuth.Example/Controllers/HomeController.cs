@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using WinAuth.Attributes;
 
 namespace WinAuth.Example.Controllers

@@ -11,22 +11,19 @@ namespace WinAuth.Middleware
     public sealed class WinAuthMiddleware
     {
         private readonly RequestDelegate _next;
-
-        private readonly IWinAuthAccessDeniedHandler? _accessDeniedHandler;
-
         private readonly Assembly _assembly;
 
         private WinAuthManager? _authManager;
+        private readonly IWinAuthAccessDeniedHandler? _accessDeniedHandler;
 
         public WinAuthMiddleware(RequestDelegate next,
                                  Assembly assembly,
                                  IWinAuthAccessDeniedHandler? accessDeniedHandler = null)
         {
             _next = next;
+            _assembly = assembly;
 
             _accessDeniedHandler = accessDeniedHandler;
-
-            _assembly = assembly;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -41,10 +38,6 @@ namespace WinAuth.Middleware
 
             //extrude route from context
             var route = context.GetRouteData();
-
-            //if there is no route
-            //route middleware wasnt registered before this middleware
-            //skip auth validation
             if (route.Values.Count == 0)
             {
                 throw new WinAuthExecutionException("Missing route configuration!");
@@ -53,8 +46,7 @@ namespace WinAuth.Middleware
             //get auth manager
             _authManager = context.RequestServices.GetRequiredService<WinAuthManager>();
 
-            //check if session exist
-            //if exists checks if its alive as well
+            //check session
             var validSessionId = await _authManager.IsSessionAliveAsync(context);
 
             //get access mode attribute
@@ -78,8 +70,12 @@ namespace WinAuth.Middleware
                     if(_accessDeniedHandler is { })
                     {
                         await _accessDeniedHandler.RequireUnAuthenticated(context);
-                        return;
                     }
+                    else
+                    {
+                        context.Response.StatusCode = 403;
+                    }
+                    return;
                 }
             }
 
@@ -92,7 +88,9 @@ namespace WinAuth.Middleware
                     await _accessDeniedHandler.RequireAuthenticated(context);
                 }
                 else
+                {
                     context.Response.StatusCode = 401;
+                }
 
                 return;
             }
@@ -116,11 +114,13 @@ namespace WinAuth.Middleware
                     {
                         if(_accessDeniedHandler is { })
                         {
-                            var userRole = await _authManager.UserRole(context);
+                            var userRole = await _authManager.GetUserRole(context);
                             await _accessDeniedHandler.RequireRole(context, userRole?.ToString(), access.Role);
                         }
                         else
+                        {
                             context.Response.StatusCode = 403;
+                        }
 
                         return;
                     }
@@ -139,38 +139,24 @@ namespace WinAuth.Middleware
             var controllerName = route.Values["controller"];
             var actionName = route.Values["action"];
 
-            //scan provided assembly
-            var controller = _assembly.GetTypes()
-                .FirstOrDefault(t => t.Name.Contains($"{controllerName}Controller"));
-
-            //if controller is null led other middleware handle it
-            if (controller is null)
+            if (controllerName is null || actionName is { })
             {
                 return null;
             }
 
-            //actions are public
-            //actionName cant be null if routing is used before this middlware
-            var action = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            //find controller
+            var controller = _assembly.GetTypes()
+                .FirstOrDefault(t => t.Name.Equals($"{controllerName}Controller"));
+
+            //find action
+            var action = controller?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(t => t.Name == actionName!.ToString());
 
-            //double check
-            if (action is null)
-            {
-                return null;
-            }
-
             //get access attribute
-            var attribute = action.GetCustomAttribute(typeof(WinAuthAuthorizeAttribute));
-
-            //double check
-            if (attribute is null)
-            {
-                return null;
-            }
+            var attribute = action?.GetCustomAttribute(typeof(WinAuthAuthorizeAttribute));
             
             //extrude access mode
-            var access = (WinAuthAuthorizeAttribute)attribute;
+            var access = (WinAuthAuthorizeAttribute?)attribute;
 
             return access;
         }

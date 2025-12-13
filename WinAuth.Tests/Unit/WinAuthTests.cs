@@ -334,7 +334,7 @@ namespace WinAuth.Tests.Unit
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
-            var username = authManager.UserName(new DefaultHttpContext());
+            var username = authManager.GetUserName(new DefaultHttpContext());
 
             Assert.Equal("testomir.testowski", username);
         }
@@ -363,7 +363,7 @@ namespace WinAuth.Tests.Unit
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, roleProvider.Object, "test.local", 30);
 
-            var role =  await authManager.UserRole(new DefaultHttpContext());
+            var role =  await authManager.GetUserRole(new DefaultHttpContext());
 
             Assert.Equal("ADMIN", role!.ToString());
         }
@@ -389,7 +389,7 @@ namespace WinAuth.Tests.Unit
 
             var authManager = new WinAuthManager(httpContextWrapper.Object, credentialValidator.Object, sessionStorage.Object, null, "test.local", 30);
 
-            var role = await authManager.UserRole(new DefaultHttpContext());
+            var role = await authManager.GetUserRole(new DefaultHttpContext());
 
             Assert.Null(role);
         }
@@ -425,7 +425,7 @@ namespace WinAuth.Tests.Unit
 
             await Assert.ThrowsAsync<WinAuthExecutionException>(async () =>
             {
-                await authManager.UserRole(new DefaultHttpContext());
+                await authManager.GetUserRole(new DefaultHttpContext());
             });
         }
 

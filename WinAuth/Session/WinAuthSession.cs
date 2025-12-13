@@ -2,11 +2,13 @@
 {
     public class WinAuthSession
     {
-        public Guid SessionId { get; set; }
+        public Guid SessionId { get; private set; }
 
-        public DateTime ExpirationDate { get; set; }
+        public DateTime ExpirationDate { get; internal set; }
 
-        public string UserName { get; set; }
+        public string UserName { get; internal set; }
+
+        public string? Role { get; internal set; }
 
         public WinAuthSession(string userName, int sessionLifeTime)
         {

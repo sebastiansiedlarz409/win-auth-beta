@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using WinAuth.Wrappers;
 using WinAuth.Exceptions;
 using WinAuth.Session;
@@ -142,10 +141,6 @@ namespace WinAuth
 
             if (validLifeTime)
             {
-                //setup user data for app purposes
-                var claims = new List<Claim>();
-                claims.Add(new Claim(ClaimTypes.Name, session.UserName));
-
                 //setup role
                 if(_roleProvider is { })
                 {
@@ -153,22 +148,14 @@ namespace WinAuth
                     try
                     {
                         role = await _roleProvider.GetRoleAsync(session);
+
+                        session.Role = role;
                     }
                     catch(Exception ex)
                     {
                         throw new WinAuthExecutionException($"Get role procedure failed! Check inner exception!", ex);
                     }
-
-                    if (role is { })
-                    {
-                        claims.Add(new Claim(ClaimTypes.Role, role!));
-                    }
                 }
-
-                var identity = new ClaimsIdentity(claims, "WinAuth");
-                var principal = new ClaimsPrincipal(identity);
-
-                httpContext.User = principal;
 
                 //rewrite session
                 //not every time due to perfomance of session manager
@@ -206,7 +193,7 @@ namespace WinAuth
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Username or null</returns>
-        public string? UserName(HttpContext httpContext)
+        public string? GetUserName(HttpContext httpContext)
         {
             return _contextWrapper.GetUserName(httpContext);
         }
@@ -217,7 +204,7 @@ namespace WinAuth
         /// <param name="httpContext">HTTP context object</param>
         /// <returns>Role name</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
-        public async Task<object?> UserRole(HttpContext httpContext)
+        public async Task<object?> GetUserRole(HttpContext httpContext)
         {
             //if there is no role system
             //every logged user has access to everything
@@ -228,19 +215,7 @@ namespace WinAuth
 
             var session = await GetSessionFromContextAsync(httpContext);
 
-            if (session is not { })
-            {
-                return null;
-            }
-
-            try
-            {
-                return await _roleProvider.GetRoleAsync(session);
-            }
-            catch (Exception ex)
-            {
-                throw new WinAuthExecutionException($"Get session procedure failed! Check inner exception!", ex);
-            }
+            return session?.Role;
         }
 
         /// <summary>

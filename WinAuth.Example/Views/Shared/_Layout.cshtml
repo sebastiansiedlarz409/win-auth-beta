@@ -35,13 +35,13 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
                     <ul class="navbar-nav flex-grow-1 flex-row-reverse">
                         <li class="nav-item">
-                            @if ((await authManager.UserRole(ViewContext.HttpContext)) is { })
+                            @if ((await authManager.GetUserRole(ViewContext.HttpContext)) is { })
                             {
-                                <button class="btn btn-outline-secondary">@((await authManager.UserRole(ViewContext.HttpContext))!.ToString())</button>
+                                <button class="btn btn-outline-secondary">@((await authManager.GetUserRole(ViewContext.HttpContext))!.ToString())</button>
                             }
                             @if (authManager.IsAuthenticated(ViewContext.HttpContext))
                             {
-                                <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@authManager.UserName(ViewContext.HttpContext))</a>
+                                <a class="btn btn-outline-danger" asp-area="" asp-controller="Home" asp-action="Logout">Logout (@authManager.GetUserName(ViewContext.HttpContext))</a>
                             }
                             else
                             {
