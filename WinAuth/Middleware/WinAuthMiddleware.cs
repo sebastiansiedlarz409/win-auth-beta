@@ -139,7 +139,7 @@ namespace WinAuth.Middleware
             var controllerName = route.Values["controller"];
             var actionName = route.Values["action"];
 
-            if (controllerName is null || actionName is { })
+            if (controllerName is null || actionName is null)
             {
                 return null;
             }

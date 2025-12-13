@@ -57,6 +57,13 @@ namespace WinAuth.Example.Controllers
             return View();
         }
 
+        [HttpPost]
+        [WinAuthAuthorize]
+        public IActionResult Page(int id)
+        {
+            return View();
+        }
+
         //admin page
         [WinAuthAuthorize(true, "ADMIN")]
         public IActionResult Admin()
