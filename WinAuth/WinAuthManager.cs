@@ -84,7 +84,7 @@ namespace WinAuth
 
             try
             {
-                await _sessionStorage.StoreSessionAsync(session);
+                await _sessionStorage.StoreSessionAsync(session).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -104,14 +104,14 @@ namespace WinAuth
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
         public async Task KillSessionAsync(HttpContext httpContext)
         {
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             //if session exist inside session storage remove it
             if (session is { })
             {
                 try
                 {
-                    await _sessionStorage.RemoveSessionAsync(session);
+                    await _sessionStorage.RemoveSessionAsync(session).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -129,7 +129,7 @@ namespace WinAuth
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage or IWinAuthRoleProvider fail</exception>
         public async Task<bool> IsSessionAliveAsync(HttpContext httpContext)
         {
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             if (session is null)
             {
@@ -147,7 +147,7 @@ namespace WinAuth
                     string? role = null;
                     try
                     {
-                        role = await _roleProvider.GetRoleAsync(session);
+                        role = await _roleProvider.GetRoleAsync(session).ConfigureAwait(false);
 
                         session.Role = role;
                     }
@@ -165,7 +165,7 @@ namespace WinAuth
 
                     try
                     {
-                        await _sessionStorage.UpdateSessionAsync(session);
+                        await _sessionStorage.UpdateSessionAsync(session).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -185,7 +185,7 @@ namespace WinAuth
         /// <returns>True if user is logged in</returns>
         public async Task<bool> IsAuthenticated(HttpContext httpContext)
         {
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             if (session is null) return false;
 
@@ -199,7 +199,7 @@ namespace WinAuth
         /// <returns>Currnent user username or null</returns>
         public async Task<string?> GetUserName(HttpContext httpContext)
         {
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             return session?.UserName;
         }
@@ -219,7 +219,7 @@ namespace WinAuth
                 return null;
             }
 
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             return session?.Role;
         }
@@ -240,7 +240,7 @@ namespace WinAuth
                 return true;
             }
 
-            var session = await GetSessionFromContextAsync(httpContext);
+            var session = await GetSessionFromContextAsync(httpContext).ConfigureAwait(false);
 
             if (session is not { })
             {
@@ -249,7 +249,7 @@ namespace WinAuth
 
             try
             {
-                return await _roleProvider.HasAccessAsync(session, role);
+                return await _roleProvider.HasAccessAsync(session, role).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -272,7 +272,7 @@ namespace WinAuth
             WinAuthSession? session = null;
             try
             {
-                session = await _sessionStorage.GetSessionAsync(sid);
+                session = await _sessionStorage.GetSessionAsync(sid).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
