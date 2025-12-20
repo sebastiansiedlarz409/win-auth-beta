@@ -6,11 +6,6 @@ namespace WinAuth.Misc
 {
     internal static class WinAuthHelper
     {
-        /// <summary>
-        /// Get WinAuthAccesAttribute assigned with action base on route
-        /// </summary>
-        /// <param name="route">Route from HttpContext</param>
-        /// <returns>Attribute object or null</returns>
         public static WinAuthAuthorizeAttribute? GetControllerActionAccessMode(Assembly assembly, RouteData route)
         {
             //get controller and action name

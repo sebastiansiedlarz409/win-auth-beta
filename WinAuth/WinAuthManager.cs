@@ -181,7 +181,7 @@ namespace WinAuth
         /// <summary>
         /// Check if user is logged in
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
+        /// <param name="httpContext">HTTP Context Object</param>
         /// <returns>True if user is logged in</returns>
         public async Task<bool> IsAuthenticated(HttpContext httpContext)
         {
@@ -193,10 +193,10 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Return user name
+        /// Return current user username
         /// </summary>
         /// <param name="httpContext">HTTP context object</param>
-        /// <returns>Username or null</returns>
+        /// <returns>Currnent user username or null</returns>
         public async Task<string?> GetUserName(HttpContext httpContext)
         {
             var session = await GetSessionFromContextAsync(httpContext);
@@ -205,10 +205,10 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Return role name
+        /// Return current user role name
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
-        /// <returns>Role name</returns>
+        /// <param name="httpContext">HTTP Context Object</param>
+        /// <returns>Current user role name as string or null</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
         public async Task<object?> GetUserRole(HttpContext httpContext)
         {
@@ -225,11 +225,10 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Check if provided role is high enough
-        /// base on IWinAuthRoleProvider implementation
+        /// Checks whether the assigned role is sufficient to gain access by calling IWinAuthRoleProvider implementation
         /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
-        /// <param name="role">Minimal role for access</param>
+        /// <param name="httpContext">HTTP Context Object</param>
+        /// <param name="role">Minimal role to gain access</param>
         /// <returns>True if access is permitted</returns>
         /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthRoleProvider fail</exception>
         public async Task<bool> HasAccessAsync(HttpContext httpContext, string role)
@@ -258,12 +257,6 @@ namespace WinAuth
             }
         }
 
-        /// <summary>
-        /// Get session base on request session
-        /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
-        /// <returns>Sesson object</returns>
-        /// <exception cref="WinAuthExecutionException">Thrown when IWinAuthSessionStorage fail</exception>
         private async Task<WinAuthSession?> GetSessionFromContextAsync(HttpContext httpContext)
         {
             //session id
@@ -289,11 +282,6 @@ namespace WinAuth
             return session;
         }
         
-        /// <summary>
-        /// Set session cookie
-        /// </summary>
-        /// <param name="httpContext">HTTP context object</param>
-        /// <param name="session">Session object</param>
         private void SetCookie(HttpContext httpContext, WinAuthSession session)
         {
             _contextWrapper.SetHttpCookie(httpContext, "winauth_session_id", session.SessionId.ToString(), session.ExpirationDate);

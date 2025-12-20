@@ -12,11 +12,13 @@ namespace WinAuth
     public static class WinAuthServicesRegistrar
     {
         /// <summary>
-        /// Configure WinAuth and check dependencies
+        /// Enable WinAuth
         /// </summary>
         /// <param name="domainName">Target domain name</param>
         /// <param name="sessionLifeTime">Session life time in minutes</param>
-        /// <exception cref="WinAuthSetupException">Thrown when setup failed due to wrong platform, too short session lifetime or lack of required services in DI</exception>
+        /// <exception cref="WinAuthSetupException">
+        /// Thrown when setup failed due to wrong platform, too short session lifetime or lack of required services registration
+        /// </exception>
         public static void AddWinAuth(this IServiceCollection services, string domainName, int sessionLifeTime)
         {
             //check platform
@@ -54,9 +56,9 @@ namespace WinAuth
         }
 
         /// <summary>
-        /// Add middlware to pipeline
+        /// Insert middleware to application pipeline
         /// </summary>
-        /// <param name="assembly">MVC assembly</param>
+        /// <param name="assembly">MVC Assembly</param>
         public static void UseWinAuth(this WebApplication app, Assembly assembly)
         {
             //add middleware to pipe line
